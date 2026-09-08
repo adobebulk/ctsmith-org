@@ -24,7 +24,9 @@ import {
   stageFile, stageDelete, readStaged,
   getStagedSlugs, isStagedDeleted, flushStaging,
   getStagedPostSlugs, isStagedPostDeleted, pendingCounts,
+  getStagedPageSlugs, isStagedPageDeleted,
 } from "../_lib/staging.js";
+import { HOME_PATH, PAGES_DIR, pagePath, assertPageSlug, pageBody } from "../_lib/pages.js";
 import {
   parseFrontMatter,
   serializeFrontMatter,
@@ -295,14 +297,57 @@ async function newSeriesSlug(env) {
 }
 
 const DEFAULT_SETTINGS = {
-  title: "Photos",
+  title: "C.T. Smith",
   navLabel: "Work",
-  photographer: "Your Name",
-  description: "A photo gallery",
+  photographer: "C.T. Smith",
+  description: "Do the Right Thing.",
   heroPhotoKey: "",
   heroLink: "",
   featured: [],
 };
+
+async function listGithubDirs(env, path) {
+  if (!env.githubToken || !env.githubRepo) return [];
+  try {
+    const entries = await listDir(env.githubToken, env.githubRepo, path);
+    return entries ? entries.filter((e) => e.type === "dir").map((e) => e.name) : [];
+  } catch (e) {
+    console.error(`[listGithubDirs] ${path}:`, e);
+    return [];
+  }
+}
+
+async function githubFileFallback(env, path) {
+  if (!env.githubToken || !env.githubRepo) return null;
+  try {
+    return await getFile(env.githubToken, env.githubRepo, path);
+  } catch (e) {
+    console.error(`[githubFileFallback] ${path}:`, e);
+    return null;
+  }
+}
+
+async function readHome(env) {
+  const result = await readStaged(
+    env.stagingBucket,
+    HOME_PATH,
+    async (p) => githubFileFallback(env, p)
+  );
+  const settings = await readSettings(env);
+  if (!result) {
+    return {
+      title: settings.title ?? "C.T. Smith",
+      tagline: settings.description ?? "Do the Right Thing.",
+      body: "",
+    };
+  }
+  const { data, body } = parseFrontMatter(result.content);
+  return {
+    title: data.title ?? settings.title ?? "C.T. Smith",
+    tagline: data.tagline ?? settings.description ?? "",
+    body: pageBody(body),
+  };
+}
 
 async function readManifest(env, slug) {
   const result = await readStaged(
@@ -318,7 +363,7 @@ async function readSettings(env) {
   const result = await readStaged(
     env.stagingBucket,
     settingsPath,
-    async (p) => getFile(env.githubToken, env.githubRepo, p)
+    async (p) => githubFileFallback(env, p)
   );
   const settings = result ? (yaml.load(result.content) ?? {}) : {};
   return { ...DEFAULT_SETTINGS, ...settings };
@@ -724,6 +769,164 @@ export async function onRequest(ctx) {
     if (method === "GET" && segments.length === 1 && segments[0] === "staging") {
       if (!env.stagingBucket) return err("ORIGINALS_BUCKET not configured", 503);
       return json(await pendingCounts(env.stagingBucket));
+    }
+
+    // ── GET /api/home ─────────────────────────────────────────────────────────
+    if (method === "GET" && segments.length === 1 && segments[0] === "home") {
+      return json(await readHome(env));
+    }
+
+    // ── PATCH /api/home ───────────────────────────────────────────────────────
+    if (method === "PATCH" && segments.length === 1 && segments[0] === "home") {
+      const updates = await request.json();
+      const current = await readHome(env);
+      const title = updates.title !== undefined ? String(updates.title).trim() : current.title;
+      const tagline = updates.tagline !== undefined ? String(updates.tagline).trim() : current.tagline;
+      const body = updates.body !== undefined ? updates.body : current.body;
+      if (!title) return err("title required");
+
+      const content = serializeFrontMatter({ title, tagline }, body ?? "");
+      await stageFile(env.stagingBucket, HOME_PATH, content);
+
+      const settings = await readSettings(env);
+      settings.title = title;
+      settings.description = tagline;
+      await stageSettings(env, settings);
+
+      return json({ title, tagline, body: body ?? "" });
+    }
+
+    // ── GET /api/pages ────────────────────────────────────────────────────────
+    if (method === "GET" && segments.length === 1 && segments[0] === "pages") {
+      const ghSlugs = await listGithubDirs(env, PAGES_DIR);
+      const stagedSlugs = await getStagedPageSlugs(env.stagingBucket);
+      const allSlugs = [...new Set([...ghSlugs, ...stagedSlugs])];
+
+      const pages = (await Promise.all(
+        allSlugs.map(async (slug) => {
+          if (await isStagedPageDeleted(env.stagingBucket, slug)) return null;
+          const result = await readStaged(
+            env.stagingBucket,
+            pagePath(slug),
+            async (p) => githubFileFallback(env, p)
+          );
+          if (!result) return null;
+          const { data } = parseFrontMatter(result.content);
+          return {
+            slug,
+            title:  data.title  ?? slug,
+            date:   data.date   ?? "",
+            draft:  data.draft  ?? true,
+            nav:    data.nav    ?? false,
+            weight: data.weight ?? 0,
+          };
+        })
+      )).filter(Boolean);
+
+      pages.sort((a, b) => (a.weight - b.weight) || a.title.localeCompare(b.title));
+      return json(pages);
+    }
+
+    // ── POST /api/pages ───────────────────────────────────────────────────────
+    if (method === "POST" && segments.length === 1 && segments[0] === "pages") {
+      const { title, body: pageBodyText = "", nav = true } = await request.json();
+      if (!title) return err("title required");
+
+      let slug;
+      try {
+        slug = assertPageSlug(slugify(title));
+      } catch (e) {
+        return err(e.message);
+      }
+
+      const existing = await readStaged(env.stagingBucket, pagePath(slug), null)
+        ?? await githubFileFallback(env, pagePath(slug));
+      if (existing) return err("page already exists", 409);
+
+      const ghSlugs = await listGithubDirs(env, PAGES_DIR);
+      const stagedSlugs = await getStagedPageSlugs(env.stagingBucket);
+      const weight = new Set([...ghSlugs, ...stagedSlugs]).size + 1;
+      const data = {
+        title,
+        date: new Date().toISOString().split("T")[0],
+        draft: true,
+        nav: Boolean(nav),
+        weight,
+      };
+      await stageFile(env.stagingBucket, pagePath(slug), serializeFrontMatter(data, pageBodyText));
+      return json({ slug, title, draft: true, nav: Boolean(nav), weight }, 201);
+    }
+
+    // ── GET /api/pages/:slug ──────────────────────────────────────────────────
+    if (method === "GET" && segments.length === 2 && segments[0] === "pages") {
+      const slug = segments[1];
+      if (await isStagedPageDeleted(env.stagingBucket, slug)) return err("page not found", 404);
+      const result = await readStaged(
+        env.stagingBucket,
+        pagePath(slug),
+        async (p) => githubFileFallback(env, p)
+      );
+      if (!result) return err("page not found", 404);
+      const { data, body: rawBody } = parseFrontMatter(result.content);
+      return json({ slug, ...data, body: pageBody(rawBody) });
+    }
+
+    // ── PATCH /api/pages/:slug ────────────────────────────────────────────────
+    if (method === "PATCH" && segments.length === 2 && segments[0] === "pages") {
+      const slug = segments[1];
+      const updates = await request.json();
+
+      if (await isStagedPageDeleted(env.stagingBucket, slug)) return err("page not found", 404);
+      const result = await readStaged(
+        env.stagingBucket,
+        pagePath(slug),
+        async (p) => githubFileFallback(env, p)
+      );
+      if (!result) return err("page not found", 404);
+      const { data, body: rawBody } = parseFrontMatter(result.content);
+
+      const updatableFields = ["title", "draft", "nav", "weight"];
+      const updatedData = { ...data };
+      for (const f of updatableFields) {
+        if (updates[f] !== undefined) updatedData[f] = updates[f];
+      }
+      const updatedBody = updates.body !== undefined ? updates.body : pageBody(rawBody);
+      await stageFile(env.stagingBucket, pagePath(slug), serializeFrontMatter(updatedData, updatedBody));
+      return json({ slug, ...updatedData, body: updatedBody });
+    }
+
+    // ── DELETE /api/pages/:slug ───────────────────────────────────────────────
+    if (method === "DELETE" && segments.length === 2 && segments[0] === "pages") {
+      const slug = segments[1];
+      const result = await readStaged(
+        env.stagingBucket,
+        pagePath(slug),
+        async (p) => githubFileFallback(env, p)
+      );
+      if (!result) return err("page not found", 404);
+      await stageDelete(env.stagingBucket, pagePath(slug));
+      return json({ deleted: slug });
+    }
+
+    // ── POST /api/pages/:slug/publish ─────────────────────────────────────────
+    if (
+      method === "POST" &&
+      segments.length === 3 &&
+      segments[0] === "pages" &&
+      segments[2] === "publish"
+    ) {
+      const slug = segments[1];
+      const { draft } = await request.json();
+      const result = await readStaged(
+        env.stagingBucket,
+        pagePath(slug),
+        async (p) => githubFileFallback(env, p)
+      );
+      if (!result) return err("page not found", 404);
+      const { data, body: rawBody } = parseFrontMatter(result.content);
+      const updatedData = { ...data, draft: Boolean(draft) };
+      await stageFile(env.stagingBucket, pagePath(slug), serializeFrontMatter(updatedData, pageBody(rawBody)));
+      return json({ slug, draft: Boolean(draft) });
     }
 
     // ── GET /api/posts ────────────────────────────────────────────────────────

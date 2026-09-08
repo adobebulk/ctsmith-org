@@ -3,17 +3,21 @@
 <head>{{ partial "head.html" . }}</head>
 <body class="min-h-screen bg-white text-black dark:bg-black dark:text-white font-sans">
   {{- $s := .Site.Data.settings -}}
+  {{- $title := .Params.title | default $s.title | default .Site.Title -}}
+  {{- $tagline := .Params.tagline | default $s.description | default .Site.Params.description -}}
   <main class="min-h-screen flex flex-col items-center justify-center text-center px-6">
     <div>
-      <h1 class="splash-name">{{ $s.title | default .Site.Title }}</h1>
+      <h1 class="splash-name">{{ $title }}</h1>
       <div class="splash-tagline">
-        <h2>{{ $s.description | default .Site.Params.description }}</h2>
+        <h2>{{ $tagline }}</h2>
       </div>
     </div>
-    <nav class="mt-8 flex gap-6 text-sm text-black/40 dark:text-white/40">
-      <a href="{{ "/about/" | relURL }}" class="hover:text-black dark:hover:text-white transition-colors">About</a>
-      <a href="{{ "/projects/" | relURL }}" class="hover:text-black dark:hover:text-white transition-colors">{{ $s.navLabel | default "Work" }}</a>
-    </nav>
+    <div class="mt-8">{{ partial "nav.html" . }}</div>
+    {{- with .Content -}}
+    <div class="mt-12 w-full max-w-2xl text-left prose dark:prose-invert text-sm leading-relaxed">
+      {{ . }}
+    </div>
+    {{- end -}}
   </main>
 </body>
 </html>

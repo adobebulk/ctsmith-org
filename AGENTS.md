@@ -113,26 +113,61 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.1.0**
+Current version: **0.2.0**
 
 ---
 
 ## Data models
 
-Identical to static-photos v1.5.7: series manifests under `site/content/projects/<slug>/`,
-photo pool at `_pool` (always draft), text posts under `site/content/posts/`, settings in
-`site/data/settings.yaml`. See the photos `AGENTS.md` for the full API table — this
-instance implements the same routes in `functions/api/[[route]].js`.
+Series, pool, posts, and settings are identical to static-photos v1.5.7. This instance also has a **pages** type and an editable homepage.
 
-About is a regular Hugo page (`site/content/about.md`), not an admin content type.
+### Homepage (`site/content/_index.md`)
+
+```yaml
+---
+title: "C.T. Smith"
+tagline: "Do the Right Thing."
+---
+optional markdown body below the splash
+```
+
+PATCH `/api/home` also writes `settings.title` and `settings.description` so OG/footer fallbacks stay in sync.
+
+### Pages (`site/content/pages/<slug>/index.md`)
+
+```yaml
+---
+title: "About"
+date: "2026-09-07"
+draft: false
+nav: true
+weight: 1
+---
+markdown body
+```
+
+Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, css, projects, posts, pages, index, home, sitemap, tags, categories, _index, _pool, _pending.
+
+### Extra admin API
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/home` | Homepage title, tagline, body |
+| PATCH | `/api/home` | Update homepage; syncs settings title/description |
+| GET | `/api/pages` | List subpages |
+| POST | `/api/pages` | Create `{ title, body, nav }` (starts as draft) |
+| GET | `/api/pages/:slug` | One page including body |
+| PATCH | `/api/pages/:slug` | Update `{ title, body, nav, draft, weight }` |
+| DELETE | `/api/pages/:slug` | Delete page |
+| POST | `/api/pages/:slug/publish` | Toggle `{ draft }` |
 
 ---
 
 ## Hugo template notes
 
-- Homepage (`index.html`): splash “C.T. Smith / Do the Right Thing.” plus About and Work links. No hero, featured row, or series grid on `/`.
+- Homepage (`index.html`): splash from `_index.md` title/tagline, optional body, nav from published pages with `nav: true` plus Work.
 - Work is `/projects/` (series list + per-series grids + PhotoSwipe). Empty state when no published series.
-- About is `_default/single.html`.
+- Subpages use `layouts/pages/single.html`, permalinks `/:slug/`.
 - No build-time image processing. Asset URLs are `{{ .Site.Params.assetsBaseURL }}/<key>/<size>.<fmt>`.
 - `_pool` is `draft: true` and filtered from public templates.
 
@@ -151,14 +186,21 @@ About is a regular Hugo page (`site/content/about.md`), not an admin content typ
 ## Known issues / TODO
 
 - [ ] Phase 0: Cloudflare/GitHub bindings for production (see RUNBOOK.md).
-- [ ] Homepage link to `blog.ctsmith.org` (Access-gated). Not in v0.1.0.
-- [ ] About page copy (placeholder in `site/content/about.md`).
+- [ ] Homepage link to `blog.ctsmith.org` (Access-gated). Not in v0.2.0.
+- [ ] About page copy (placeholder in `site/content/pages/about/index.md`).
 
 ---
 
 ## Current state (last updated: 2026-09-07)
 
-### v0.1.0 — CURRENT
+### v0.2.0 — CURRENT
+
+- Admin Pages tab: edit homepage (name, tagline, optional body) and CRUD subpages.
+- Homepage is `site/content/_index.md`. Subpages are `site/content/pages/<slug>/` at `/:slug/`.
+- Nav is driven by published pages with `nav: true`, plus Work.
+- GitHub 401/missing token no longer blocks local staging reads (settings/home/pages).
+
+### v0.1.0
 
 - Stand up ctsmith.org as a second Basalt instance.
 - CMS (`functions/`, admin UI, staging, pool, posts) imported from static-photos v1.5.7.

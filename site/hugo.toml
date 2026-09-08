@@ -10,5 +10,8 @@ disableKinds = ["taxonomy", "term", "RSS"]
   # Root-relative asset path — served by the /assets Pages Function (streams from R2).
   assetsBaseURL = "/assets"
 
+[permalinks]
+  pages = "/:slug/"
+
 [build]
   writeStats = true

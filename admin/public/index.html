@@ -561,7 +561,7 @@
       <span class="site-name">ctsmith.org</span>
       <div class="topbar-nav">
         <button onclick="openSettings()">Settings</button>
-        <button id="btn-new" onclick="onNew()">+ New</button>
+        <button id="btn-new" onclick="onNew()">+ New page</button>
         <button id="btn-rebuild" data-rebuild-btn onclick="rebuild()"><span data-rebuild-icon>↻</span> Rebuild</button>
       </div>
     </div>
@@ -570,16 +570,40 @@
 
   <!-- Tab bar -->
   <div class="tab-bar">
-    <button class="tab-btn active" id="tab-btn-series" onclick="switchTab('series')">Series</button>
-    <button class="tab-btn" id="tab-btn-posts" onclick="switchTab('posts')">Posts</button>
+    <button class="tab-btn active" id="tab-btn-pages" onclick="switchTab('pages')">Pages</button>
+    <button class="tab-btn" id="tab-btn-series" onclick="switchTab('series')">Work</button>
     <button class="tab-btn" id="tab-btn-pool" onclick="switchTab('pool')">Pool</button>
+    <button class="tab-btn" id="tab-btn-posts" onclick="switchTab('posts')">Posts</button>
   </div>
   </div>
 
-  <!-- Series tab -->
-  <div id="tab-series">
+  <!-- Pages tab -->
+  <div id="tab-pages">
+    <div class="section-head" style="margin-bottom:12px">
+      <h2>Pages</h2>
+    </div>
+    <div class="post-card" style="margin-bottom:10px">
+      <div class="post-card-info">
+        <div class="post-card-title">Homepage</div>
+        <div class="post-card-meta">
+          <span>/</span>
+          <span class="badge badge-live">Live</span>
+          <span>Splash name + tagline</span>
+        </div>
+      </div>
+      <div class="post-card-actions">
+        <button class="btn-outline" style="font-size:11px;padding:3px 8px" onclick="openEditHome()">Edit</button>
+      </div>
+    </div>
+    <div id="pages-list" style="display:flex;flex-direction:column;gap:6px">
+      <div class="empty" style="border:1px solid var(--border-light)">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Work tab -->
+  <div id="tab-series" class="hidden">
     <div class="section-head">
-      <h2>Series</h2>
+      <h2>Work</h2>
     </div>
     <div class="table-wrap">
       <table>
@@ -651,13 +675,13 @@
 <div class="overlay hidden" id="overlay-new" onclick="closeIfBackdrop(event,'overlay-new')">
   <div class="sheet">
     <div class="sheet-header">
-      <span class="sheet-title">New Series</span>
+      <span class="sheet-title">New series</span>
       <button class="sheet-close" onclick="closeSheet('overlay-new')">Close <span class="esc-hint">[esc]</span></button>
     </div>
     <div class="sheet-body">
       <div class="field">
         <label>Title *</label>
-        <input type="text" id="new-title" placeholder="e.g. Iceland 2025" autocomplete="off">
+        <input type="text" id="new-title" placeholder="e.g. Portfolio" autocomplete="off">
       </div>
       <div class="field">
         <label>Description</label>
@@ -709,6 +733,72 @@
   </div>
 </div>
 
+<!-- ── Homepage editor ──────────────────────────────────────── -->
+<div class="overlay hidden" id="overlay-home" onclick="closeIfBackdrop(event,'overlay-home')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <span class="sheet-title">Edit homepage</span>
+      <button class="sheet-close" onclick="closeSheet('overlay-home')">Close <span class="esc-hint">[esc]</span></button>
+    </div>
+    <div class="sheet-body">
+      <p class="field-hint" style="margin-top:0">This is the public splash at ctsmith.org. Name sits on the left of the divider; tagline on the right.</p>
+      <div class="field">
+        <label>Name *</label>
+        <input type="text" id="home-title" placeholder="C.T. Smith" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Tagline</label>
+        <input type="text" id="home-tagline" placeholder="Do the Right Thing." autocomplete="off">
+      </div>
+      <div class="field">
+        <div class="post-body-head">
+          <label style="margin-bottom:0">Body (markdown, optional)</label>
+          <button class="btn-outline" style="font-size:11px;padding:3px 8px" onclick="openPhotoPicker('home-body')">⊕ Insert photo</button>
+        </div>
+        <textarea id="home-body" rows="8" style="min-height:160px" placeholder="Optional text below the splash. Markdown."></textarea>
+      </div>
+      <div>
+        <button class="btn-action" onclick="saveHome()">Save homepage →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── New / Edit page sheet ─────────────────────────────────── -->
+<div class="overlay hidden" id="overlay-page" onclick="closeIfBackdrop(event,'overlay-page')">
+  <div class="sheet">
+    <div class="sheet-header">
+      <span class="sheet-title" id="page-sheet-title">New page</span>
+      <button class="sheet-close" onclick="closeSheet('overlay-page')">Close <span class="esc-hint">[esc]</span></button>
+    </div>
+    <div class="sheet-body">
+      <div class="field">
+        <label>Title *</label>
+        <input type="text" id="page-title" placeholder="e.g. About" autocomplete="off">
+      </div>
+      <div class="field">
+        <div class="post-body-head">
+          <label style="margin-bottom:0">Body (markdown)</label>
+          <button class="btn-outline" style="font-size:11px;padding:3px 8px" onclick="openPhotoPicker('page-body')">⊕ Insert photo</button>
+        </div>
+        <textarea id="page-body" rows="12" style="min-height:220px" placeholder="Write this page in markdown…"></textarea>
+      </div>
+      <div class="field-check">
+        <input type="checkbox" id="page-nav" checked>
+        <label for="page-nav">Show in site navigation</label>
+      </div>
+      <div class="field-check">
+        <input type="checkbox" id="page-draft" checked>
+        <label for="page-draft">Draft — hide from public site</label>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-action" onclick="savePage()">Save page →</button>
+        <button class="btn-outline" id="page-delete-btn" onclick="deletePage()" style="display:none">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── Site Settings sheet ───────────────────────────────────── -->
 <div class="overlay hidden" id="overlay-settings" onclick="closeIfBackdrop(event,'overlay-settings')">
   <div class="sheet">
@@ -717,14 +807,15 @@
       <button class="sheet-close" onclick="closeSheet('overlay-settings')">Close <span class="esc-hint">[esc]</span></button>
     </div>
     <div class="sheet-body">
-      <div class="field"><label>Site title</label>
-        <input type="text" id="set-title" placeholder="Photos"></div>
-      <div class="field"><label>Nav label</label>
+      <p class="field-hint" style="margin-top:0">Splash name and tagline are edited on the homepage (Pages tab). These are fallbacks and footer/nav extras.</p>
+      <div class="field"><label>Site title (fallback)</label>
+        <input type="text" id="set-title" placeholder="C.T. Smith"></div>
+      <div class="field"><label>Work nav label</label>
         <input type="text" id="set-nav" placeholder="Work"></div>
-      <div class="field"><label>Photographer name (footer)</label>
-        <input type="text" id="set-photographer" placeholder="Your Name"></div>
-      <div class="field"><label>Site description</label>
-        <textarea id="set-description" placeholder="A photo gallery"></textarea></div>
+      <div class="field"><label>Footer name</label>
+        <input type="text" id="set-photographer" placeholder="C.T. Smith"></div>
+      <div class="field"><label>Site description (fallback)</label>
+        <textarea id="set-description" placeholder="Do the Right Thing."></textarea></div>
 
       <div style="height:1px;background:var(--border-light)"></div>
 
@@ -733,7 +824,7 @@
         <div class="featured-list" id="featured-list"></div>
         <div class="featured-add-row">
           <select id="feat-type" onchange="onFeatTypeChange()">
-            <option value="series">Series</option>
+            <option value="series">Work series</option>
             <option value="post">Post</option>
             <option value="photo">Photo</option>
           </select>
@@ -818,14 +909,17 @@
 // ── State ────────────────────────────────────────────────────────
 let projects      = [];
 let posts         = [];
-let currentTab    = 'series';
+let pages         = [];
+let currentTab    = 'pages';
 let editingPost   = null;
+let editingPage   = null;
+let photoPickerTarget = 'post-body';
 let featuredItems = [];
 let panelSettings = {}; // cached per-panel settings (series detail)
 let sheetStack    = [];
 
 // ── Init ─────────────────────────────────────────────────────────
-loadProjects();
+loadPagesList();
 refreshStagingStatus();
 loadVersion();
 
@@ -840,23 +934,29 @@ async function loadVersion() {
 // ── Tab switching ─────────────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
+  document.getElementById('tab-pages').classList.toggle('hidden', tab !== 'pages');
   document.getElementById('tab-series').classList.toggle('hidden', tab !== 'series');
   document.getElementById('tab-posts').classList.toggle('hidden', tab !== 'posts');
   document.getElementById('tab-pool').classList.toggle('hidden', tab !== 'pool');
+  document.getElementById('tab-btn-pages').classList.toggle('active', tab === 'pages');
   document.getElementById('tab-btn-series').classList.toggle('active', tab === 'series');
   document.getElementById('tab-btn-posts').classList.toggle('active', tab === 'posts');
   document.getElementById('tab-btn-pool').classList.toggle('active', tab === 'pool');
   const newBtn = document.getElementById('btn-new');
   newBtn.style.display = tab === 'pool' ? 'none' : '';
-  newBtn.textContent = tab === 'series' ? '+ New Series' : '+ New Post';
-  // Hide pool move bar when leaving pool tab
+  newBtn.textContent = tab === 'pages' ? '+ New page'
+    : tab === 'series' ? '+ New series'
+    : '+ New post';
   if (tab !== 'pool') document.getElementById('pool-move-bar').classList.add('hidden');
+  if (tab === 'pages') loadPagesList();
   if (tab === 'posts') loadPostsList();
   if (tab === 'pool') loadPool();
+  if (tab === 'series') loadProjects();
 }
 
 function onNew() {
-  if (currentTab === 'series') openNewProject();
+  if (currentTab === 'pages') openNewPage();
+  else if (currentTab === 'series') openNewProject();
   else openNewPost();
 }
 
@@ -1409,6 +1509,159 @@ async function deleteSeries(slug) {
   } catch(e) { toast('Delete failed: ' + e.message, true); }
 }
 
+// ── Pages + homepage ──────────────────────────────────────────────
+async function loadPagesList() {
+  const container = document.getElementById('pages-list');
+  container.innerHTML = `<div class="empty" style="border:1px solid var(--border-light)">Loading…</div>`;
+  try {
+    pages = await api('GET', '/pages');
+    renderPagesList();
+  } catch (e) {
+    container.innerHTML = `<div class="empty" style="border:1px solid var(--border-light)">Failed to load — ${esc(e.message)}</div>`;
+    toast('Failed to load pages: ' + e.message, true);
+  }
+}
+
+function renderPagesList() {
+  const container = document.getElementById('pages-list');
+  if (!pages.length) {
+    container.innerHTML = `<div class="empty" style="border:1px solid var(--border-light)">No subpages yet — click "+ New page".</div>`;
+    return;
+  }
+  container.innerHTML = pages.map(p => `
+    <div class="post-card">
+      <div class="post-card-info">
+        <div class="post-card-title">${esc(p.title)}</div>
+        <div class="post-card-meta">
+          <span>/${esc(p.slug)}/</span>
+          ${p.draft ? `<span class="badge badge-draft">Draft</span>` : `<span class="badge badge-live">Live</span>`}
+          ${p.nav && !p.draft ? `<span class="badge badge-featured">Nav</span>` : ''}
+        </div>
+      </div>
+      <div class="post-card-actions">
+        <button class="btn-outline" style="font-size:11px;padding:3px 8px" onclick="openEditPage('${esc(p.slug)}')">Edit</button>
+        <button class="btn-outline" style="font-size:11px;padding:3px 8px" onclick="togglePagePublish('${esc(p.slug)}',${p.draft})">${p.draft ? 'Publish' : 'Unpublish'}</button>
+        <button class="btn-danger" style="font-size:11px;padding:3px 8px" onclick="confirmDeletePage(${jsString(p.slug)},${jsString(p.title)})">Del</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function openEditHome() {
+  openSheet('overlay-home');
+  try {
+    const h = await api('GET', '/home');
+    document.getElementById('home-title').value = h.title || '';
+    document.getElementById('home-tagline').value = h.tagline || '';
+    document.getElementById('home-body').value = h.body || '';
+  } catch (e) {
+    toast('Failed to load homepage: ' + e.message, true);
+  }
+}
+
+async function saveHome() {
+  const title = document.getElementById('home-title').value.trim();
+  const tagline = document.getElementById('home-tagline').value.trim();
+  const body = document.getElementById('home-body').value;
+  if (!title) { toast('Name is required', true); return; }
+  try {
+    await api('PATCH', '/home', { title, tagline, body });
+    closeSheet('overlay-home');
+    await refreshStagingStatus();
+    toast('Homepage saved — rebuild to publish');
+  } catch (e) {
+    toast('Save failed: ' + e.message, true);
+  }
+}
+
+function openNewPage() {
+  editingPage = null;
+  document.getElementById('page-sheet-title').textContent = 'New page';
+  document.getElementById('page-title').value = '';
+  document.getElementById('page-body').value = '';
+  document.getElementById('page-nav').checked = true;
+  document.getElementById('page-draft').checked = true;
+  document.getElementById('page-delete-btn').style.display = 'none';
+  openSheet('overlay-page');
+  setTimeout(() => document.getElementById('page-title').focus(), 150);
+}
+
+async function openEditPage(slug) {
+  editingPage = slug;
+  document.getElementById('page-sheet-title').textContent = 'Edit page';
+  document.getElementById('page-delete-btn').style.display = '';
+  openSheet('overlay-page');
+  try {
+    const p = await api('GET', `/pages/${slug}`);
+    document.getElementById('page-title').value = p.title || '';
+    document.getElementById('page-body').value = p.body || '';
+    document.getElementById('page-nav').checked = p.nav !== false;
+    document.getElementById('page-draft').checked = !!p.draft;
+  } catch (e) {
+    toast('Failed to load page: ' + e.message, true);
+  }
+}
+
+async function savePage() {
+  const title = document.getElementById('page-title').value.trim();
+  const body = document.getElementById('page-body').value;
+  const nav = document.getElementById('page-nav').checked;
+  const draft = document.getElementById('page-draft').checked;
+  if (!title) { toast('Title is required', true); return; }
+  try {
+    if (!editingPage) {
+      await api('POST', '/pages', { title, body, nav });
+      toast(`Page "${title}" created as a draft`);
+    } else {
+      await api('PATCH', `/pages/${editingPage}`, { title, body, nav, draft });
+      toast('Page saved');
+    }
+    closeSheet('overlay-page');
+    await refreshStagingStatus();
+    await loadPagesList();
+  } catch (e) {
+    toast('Save failed: ' + e.message, true);
+  }
+}
+
+async function togglePagePublish(slug, isDraft) {
+  try {
+    await api('POST', `/pages/${slug}/publish`, { draft: !isDraft });
+    await refreshStagingStatus();
+    toast(isDraft ? 'Page published' : 'Page moved to draft');
+    await loadPagesList();
+  } catch (e) {
+    toast('Failed: ' + e.message, true);
+  }
+}
+
+async function confirmDeletePage(slug, title) {
+  if (!confirm(`Delete page "${title}"? This cannot be undone.`)) return;
+  try {
+    await api('DELETE', `/pages/${slug}`);
+    await refreshStagingStatus();
+    toast(`Deleted "${title}"`);
+    await loadPagesList();
+  } catch (e) {
+    toast('Delete failed: ' + e.message, true);
+  }
+}
+
+async function deletePage() {
+  if (!editingPage) return;
+  const title = document.getElementById('page-title').value || editingPage;
+  if (!confirm(`Delete page "${title}"? This cannot be undone.`)) return;
+  try {
+    await api('DELETE', `/pages/${editingPage}`);
+    closeSheet('overlay-page');
+    await refreshStagingStatus();
+    toast(`Deleted "${title}"`);
+    await loadPagesList();
+  } catch (e) {
+    toast('Delete failed: ' + e.message, true);
+  }
+}
+
 // ── Posts ─────────────────────────────────────────────────────────
 let postsFeaturedSlugs = new Set(); // slugs currently in settings.featured[] with type=post
 
@@ -1567,7 +1820,8 @@ async function deletePost() {
 // ── Photo picker (for post body) ──────────────────────────────────
 let pickerSelectedPhoto = null;
 
-async function openPhotoPicker() {
+async function openPhotoPicker(targetId) {
+  photoPickerTarget = targetId || 'post-body';
   pickerSelectedPhoto = null;
   const btn = document.getElementById('picker-insert-btn');
   btn.disabled = true; btn.style.opacity = '.4'; btn.style.pointerEvents = 'none';
@@ -1645,7 +1899,8 @@ function insertPhotoMarkdown() {
   const url    = `/assets/${photo.key}/${size}.jpg`;
   const md     = `![${alt}](${url})\n`;
 
-  const ta = document.getElementById('post-body');
+  const ta = document.getElementById(photoPickerTarget || 'post-body');
+  if (!ta) return;
   const start = ta.selectionStart;
   const end   = ta.selectionEnd;
   ta.value = ta.value.slice(0, start) + md + ta.value.slice(end);

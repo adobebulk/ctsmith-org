@@ -2,7 +2,7 @@
 
 Personal site for C.T. Smith. A fast static Hugo site for visitors, with a private serverless admin (Basalt) for managing photos and posts — no always-on server.
 
-Everything runs on **Cloudflare + GitHub**. Photos live in R2 (never git). Metadata commits are text-only. Current version: **0.1.0**
+Everything runs on **Cloudflare + GitHub**. Photos live in R2 (never git). Metadata commits are text-only. Current version: **0.2.0**
 
 CMS architecture is imported from [static-photos](https://github.com/adobebulk/static-photos) **v1.5.7**. That project is a separate site (`photos.ctsmith.org`) and is not modified here.
 
@@ -111,7 +111,8 @@ ctsmith-org/
 │   ├── hugo.toml
 │   ├── data/settings.yaml  title, navLabel, photographer, description
 │   ├── static/admin/       admin UI served at /admin by Pages
-│   ├── content/about.md
+│   ├── content/_index.md       homepage splash (title, tagline, optional body)
+│   ├── content/pages/          subpages (About, …) published at /<slug>/
 │   ├── content/projects/   series branch bundles (_index.md manifests, NO images)
 │   └── themes/basalt/layouts/
 ├── wrangler.toml
@@ -154,6 +155,7 @@ See **RUNBOOK.md** for account setup.
 ## Customising
 
 - **Site title, nav label, photographer name, description** — admin Settings panel (or edit `site/data/settings.yaml`)
-- **About page** — `site/content/about.md`
+- **Homepage splash** — admin Pages tab (or `site/content/_index.md`)
+- **Subpages** — admin Pages tab (or `site/content/pages/<slug>/index.md`)
 - **Colors / typography** — `site/assets/css/input.css` and `tailwind.config.js`
 - **Templates** — `site/themes/basalt/layouts/`
