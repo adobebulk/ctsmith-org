@@ -359,12 +359,16 @@ async function readManifest(env, slug) {
   return { ...parseFrontMatter(result.content), raw: result.content };
 }
 
-async function readSettings(env) {
-  const result = await readStaged(
+async function loadSettingsFile(env) {
+  return readStaged(
     env.stagingBucket,
     settingsPath,
     async (p) => githubFileFallback(env, p)
   );
+}
+
+async function readSettings(env) {
+  const result = await loadSettingsFile(env);
   const settings = result ? (yaml.load(result.content) ?? {}) : {};
   return { ...DEFAULT_SETTINGS, ...settings };
 }
@@ -788,10 +792,13 @@ export async function onRequest(ctx) {
       const content = serializeFrontMatter({ title, tagline }, body ?? "");
       await stageFile(env.stagingBucket, HOME_PATH, content);
 
-      const settings = await readSettings(env);
-      settings.title = title;
-      settings.description = tagline;
-      await stageSettings(env, settings);
+      const rawSettings = await loadSettingsFile(env);
+      if (rawSettings) {
+        const settings = { ...DEFAULT_SETTINGS, ...(yaml.load(rawSettings.content) ?? {}) };
+        settings.title = title;
+        settings.description = tagline;
+        await stageSettings(env, settings);
+      }
 
       return json({ title, tagline, body: body ?? "" });
     }
@@ -829,7 +836,7 @@ export async function onRequest(ctx) {
 
     // ── POST /api/pages ───────────────────────────────────────────────────────
     if (method === "POST" && segments.length === 1 && segments[0] === "pages") {
-      const { title, body: pageBodyText = "", nav = true } = await request.json();
+      const { title, body: pageBodyText = "", nav = true, draft = true } = await request.json();
       if (!title) return err("title required");
 
       let slug;
@@ -839,8 +846,11 @@ export async function onRequest(ctx) {
         return err(e.message);
       }
 
-      const existing = await readStaged(env.stagingBucket, pagePath(slug), null)
-        ?? await githubFileFallback(env, pagePath(slug));
+      const existing = await readStaged(
+        env.stagingBucket,
+        pagePath(slug),
+        async (p) => githubFileFallback(env, p)
+      );
       if (existing) return err("page already exists", 409);
 
       const ghSlugs = await listGithubDirs(env, PAGES_DIR);
@@ -849,17 +859,18 @@ export async function onRequest(ctx) {
       const data = {
         title,
         date: new Date().toISOString().split("T")[0],
-        draft: true,
+        draft: Boolean(draft),
         nav: Boolean(nav),
         weight,
       };
       await stageFile(env.stagingBucket, pagePath(slug), serializeFrontMatter(data, pageBodyText));
-      return json({ slug, title, draft: true, nav: Boolean(nav), weight }, 201);
+      return json({ slug, title, draft: Boolean(draft), nav: Boolean(nav), weight }, 201);
     }
 
     // ── GET /api/pages/:slug ──────────────────────────────────────────────────
     if (method === "GET" && segments.length === 2 && segments[0] === "pages") {
-      const slug = segments[1];
+      let slug;
+      try { slug = assertPageSlug(segments[1]); } catch (e) { return err(e.message); }
       if (await isStagedPageDeleted(env.stagingBucket, slug)) return err("page not found", 404);
       const result = await readStaged(
         env.stagingBucket,
@@ -873,7 +884,8 @@ export async function onRequest(ctx) {
 
     // ── PATCH /api/pages/:slug ────────────────────────────────────────────────
     if (method === "PATCH" && segments.length === 2 && segments[0] === "pages") {
-      const slug = segments[1];
+      let slug;
+      try { slug = assertPageSlug(segments[1]); } catch (e) { return err(e.message); }
       const updates = await request.json();
 
       if (await isStagedPageDeleted(env.stagingBucket, slug)) return err("page not found", 404);
@@ -897,7 +909,8 @@ export async function onRequest(ctx) {
 
     // ── DELETE /api/pages/:slug ───────────────────────────────────────────────
     if (method === "DELETE" && segments.length === 2 && segments[0] === "pages") {
-      const slug = segments[1];
+      let slug;
+      try { slug = assertPageSlug(segments[1]); } catch (e) { return err(e.message); }
       const result = await readStaged(
         env.stagingBucket,
         pagePath(slug),
@@ -915,7 +928,8 @@ export async function onRequest(ctx) {
       segments[0] === "pages" &&
       segments[2] === "publish"
     ) {
-      const slug = segments[1];
+      let slug;
+      try { slug = assertPageSlug(segments[1]); } catch (e) { return err(e.message); }
       const { draft } = await request.json();
       const result = await readStaged(
         env.stagingBucket,

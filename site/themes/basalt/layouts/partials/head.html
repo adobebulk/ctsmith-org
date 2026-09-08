@@ -6,7 +6,7 @@
   {{- $cap := "" -}}{{- with $photo }}{{ $cap = string .caption }}{{ end -}}
 <title>{{ if ne $cap "" }}{{ $cap }}{{ else }}Photo {{ .Params.photoid }}{{ end }} — {{ .Parent.Title }} — {{ .Site.Title }}</title>
 {{- else -}}
-<title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} — {{ .Site.Title }}{{ end }}</title>
+<title>{{ if .IsHome }}{{ .Params.title | default $s.title | default .Site.Title }}{{ else }}{{ .Title }} — {{ $s.title | default .Site.Title }}{{ end }}</title>
 {{- end }}
 <meta name="description" content="{{ with .Params.description }}{{ . }}{{ else }}{{ $s.description | default .Site.Params.description }}{{ end }}">
 {{ partial "og.html" . }}

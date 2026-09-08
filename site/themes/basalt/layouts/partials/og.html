@@ -23,7 +23,11 @@
   {{- with $ckey -}}{{- $img = printf "%s/%s/1200.jpg" $base . | absURL -}}{{- end -}}
   {{- $desc = .Params.description -}}
 {{- else -}}
-  {{- $desc = .Site.Params.description -}}
+  {{- $s := .Site.Data.settings -}}
+  {{- $desc = .Params.tagline | default .Params.description | default $s.description | default .Site.Params.description -}}
+  {{- if .IsHome -}}
+    {{- $title = .Params.title | default $s.title | default $title -}}
+  {{- end -}}
 {{- end -}}
 <meta property="og:title" content="{{ $title }}">
 <meta property="og:type" content="{{ if .Params.photoid }}article{{ else }}website{{ end }}">

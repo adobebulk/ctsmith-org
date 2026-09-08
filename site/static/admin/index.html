@@ -1610,8 +1610,8 @@ async function savePage() {
   if (!title) { toast('Title is required', true); return; }
   try {
     if (!editingPage) {
-      await api('POST', '/pages', { title, body, nav });
-      toast(`Page "${title}" created as a draft`);
+      await api('POST', '/pages', { title, body, nav, draft });
+      toast(draft ? `Page "${title}" created as a draft` : `Page "${title}" created`);
     } else {
       await api('PATCH', `/pages/${editingPage}`, { title, body, nav, draft });
       toast('Page saved');

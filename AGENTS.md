@@ -88,12 +88,13 @@ ctsmith-org/
 ├── site/
 │   ├── hugo.toml               baseURL = https://ctsmith.org/
 │   ├── data/settings.yaml
-│   ├── content/about.md        git-managed About page (not an admin type yet)
+│   ├── content/_index.md       homepage splash (admin-editable)
+│   ├── content/pages/          subpages at /<slug>/ (admin-editable)
 │   ├── content/projects/       series + empty _pool
 │   ├── content/posts/          posts type kept; not linked in public nav
 │   └── themes/basalt/layouts/  splash homepage + restyled CMS templates
 ├── wrangler.toml               project ctsmith-org, own R2 buckets
-└── package.json                version 0.1.0
+└── package.json                version 0.2.1
 ```
 
 ---
@@ -113,7 +114,7 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.2.0**
+Current version: **0.2.1**
 
 ---
 
@@ -155,7 +156,7 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 | GET | `/api/home` | Homepage title, tagline, body |
 | PATCH | `/api/home` | Update homepage; syncs settings title/description |
 | GET | `/api/pages` | List subpages |
-| POST | `/api/pages` | Create `{ title, body, nav }` (starts as draft) |
+| POST | `/api/pages` | Create `{ title, body, nav, draft }` (draft defaults true) |
 | GET | `/api/pages/:slug` | One page including body |
 | PATCH | `/api/pages/:slug` | Update `{ title, body, nav, draft, weight }` |
 | DELETE | `/api/pages/:slug` | Delete page |
@@ -193,7 +194,14 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ## Current state (last updated: 2026-09-07)
 
-### v0.2.0 — CURRENT
+### v0.2.1 — CURRENT
+
+- Create-page Draft checkbox is honored on POST.
+- Homepage OG title/description follow `_index.md` / settings, not hugo.toml.
+- Homepage save no longer writes a default `settings.yaml` when GitHub is missing.
+- Recreating a staged-deleted page no longer 409s. Slug validation on all page routes.
+
+### v0.2.0
 
 - Admin Pages tab: edit homepage (name, tagline, optional body) and CRUD subpages.
 - Homepage is `site/content/_index.md`. Subpages are `site/content/pages/<slug>/` at `/:slug/`.
