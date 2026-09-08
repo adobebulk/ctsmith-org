@@ -1,5 +1,5 @@
 ---
 title: Pages
-_build:
+build:
   render: never
 ---

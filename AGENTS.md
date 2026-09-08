@@ -114,7 +114,7 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.2.1**
+Current version: **0.2.2**
 
 ---
 
@@ -194,7 +194,11 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ## Current state (last updated: 2026-09-07)
 
-### v0.2.1 — CURRENT
+### v0.2.2 — CURRENT
+
+- Hugo 0.161.1: `build.render` instead of removed `_build`; `locale` instead of deprecated `languageCode`.
+
+### v0.2.1
 
 - Create-page Draft checkbox is honored on POST.
 - Homepage OG title/description follow `_index.md` / settings, not hugo.toml.
