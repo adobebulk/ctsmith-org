@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>{{ partial "head.html" . }}</head>
+<body class="min-h-screen flex flex-col bg-white text-black dark:bg-black dark:text-white font-sans">
+  {{ partial "header.html" . }}
+
+  <main class="flex-1 w-full max-w-2xl mx-auto px-6 py-10">
+    <a href="{{ "/" | relURL }}" class="text-xs text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-colors">← Home</a>
+
+    <h1 class="mt-6 text-2xl font-medium tracking-tight leading-tight">{{ .Title }}</h1>
+    {{- with .Date }}
+    <p class="mt-2 text-xs text-black/40 dark:text-white/40 tabular-nums">{{ .Format "2006-01-02" }}</p>
+    {{- end }}
+
+    <div class="mt-8 prose dark:prose-invert max-w-none text-sm leading-relaxed">
+      {{ .Content }}
+    </div>
+  </main>
+
+  {{ partial "footer.html" . }}
+</body>
+</html>

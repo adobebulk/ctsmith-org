@@ -9,5 +9,5 @@ npx --prefix "$REPO" tailwindcss \
   -o "$REPO/site/static/css/style.css" \
   --minify
 echo "→ Building Hugo…"
-hugo --source "$REPO/site" --minify
+hugo --source "$REPO/site" --config hugo.toml --minify
 echo "✓ Done → $REPO/site/public"

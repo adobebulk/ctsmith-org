@@ -12,11 +12,12 @@
  *   ASSETS_BUCKET      R2 binding — public bucket (web variants + public originals)
  *   ORIGINALS_BUCKET   R2 binding — private bucket (all originals; no public domain)
  *   GITHUB_TOKEN       Secret — fine-grained PAT, Contents read/write on this repo
- *   GITHUB_REPO        Var — "owner/repo", e.g. "adobebulk/static-photos"
+ *   GITHUB_REPO        Var — "owner/repo", e.g. "adobebulk/ctsmith-org"
  *   DEPLOY_HOOK_URL    Secret — Cloudflare Pages deploy hook URL (admin "Rebuild" button)
+ *   PUBLIC_ORIGIN      Var — public site origin, e.g. "https://ctsmith.org"
  *
  * Optional (for global CDN cache purge on downloadable toggle):
- *   CF_ZONE_ID         Var — Cloudflare zone ID for photos.ctsmith.org
+ *   CF_ZONE_ID         Var — Cloudflare zone ID for ctsmith.org
  *   CF_API_TOKEN       Secret — token with Cache Purge permission on the zone
  *   Without these, cache purge falls back to local datacenter only (caches.default.delete).
  */
@@ -32,6 +33,7 @@ export function getEnv(ctx) {
     githubToken:     e.GITHUB_TOKEN,
     githubRepo:      e.GITHUB_REPO,
     deployHookUrl:   e.DEPLOY_HOOK_URL,
+    publicOrigin:    e.PUBLIC_ORIGIN || "https://ctsmith.org",
     cfZoneId:        e.CF_ZONE_ID,       // optional
     cfApiToken:      e.CF_API_TOKEN,     // optional
     packageVersion:  e.PACKAGE_VERSION,

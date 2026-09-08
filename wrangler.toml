@@ -1,11 +1,11 @@
 # Cloudflare Pages project config
 # Used by `npx wrangler pages dev` for local dev and `wrangler pages deploy` for production.
 #
-# Production bindings (R2, IMAGES, secrets) are configured in the Pages project dashboard:
+# Production bindings (R2, secrets) are configured in the Pages project dashboard:
 #   Pages → Settings → Functions → Bindings & Variables
 # The entries below are for local dev only (wrangler pages dev).
 
-name = "basalt"
+name = "ctsmith-org"
 compatibility_date = "2025-01-01"
 pages_build_output_dir = "site/public"
 
@@ -13,14 +13,15 @@ pages_build_output_dir = "site/public"
 HUGO_VERSION = "0.161.1"
 # Keep in sync with package.json version
 PACKAGE_VERSION = "0.1.0"
-GITHUB_REPO = "adobebulk/basalt"
+GITHUB_REPO = "adobebulk/ctsmith-org"
 DEPLOY_HOOK_URL = ""
-ASSETS_R2_PUBLIC_URL = "https://r2.photos.ctsmith.org"
+ASSETS_R2_PUBLIC_URL = "https://r2.ctsmith.org"
+PUBLIC_ORIGIN = "https://ctsmith.org"
 
 [[r2_buckets]]
 binding = "ASSETS_BUCKET"
-bucket_name = "static-photos-assets"
+bucket_name = "ctsmith-org-assets"
 
 [[r2_buckets]]
 binding = "ORIGINALS_BUCKET"
-bucket_name = "static-photos-originals"
+bucket_name = "ctsmith-org-originals"

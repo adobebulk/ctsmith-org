@@ -1,56 +1,14 @@
 baseURL = "https://ctsmith.org/"
 languageCode = "en-us"
 title = "C.T. Smith"
-theme = "hextra"
+theme = "basalt"
+disableKinds = ["taxonomy", "term", "RSS"]
 
-# Asset handling
-assetDir = "assets"
-assetsBaseURL = "/assets"
-
-# Output formats
-outputs.home = ["HTML", "JSON"]
-
-# Menu
-[menu]
-[[menu.main]]
-name = "Home"
-pageRef = "/"
-weight = 1
-
-[[menu.main]]
-name = "About"
-pageRef = "/about"
-weight = 2
-
-[[menu.main]]
-name = "Work"
-pageRef = "/portfolio"
-weight = 3
-
-[[menu.main]]
-name = "Writing"
-pageRef = "/blog"
-weight = 4
-
-# Params
 [params]
-title = "C.T. Smith"
-description = "Personal website and creative portfolio"
-logo = "logo.svg"
-logoWidth = 40
+  photographer = "C.T. Smith"
+  description   = "Do the Right Thing."
+  # Root-relative asset path — served by the /assets Pages Function (streams from R2).
+  assetsBaseURL = "/assets"
 
-# Hextra-specific params
-[params.hextra]
-enableSearch = true
-enableDarkMode = true
-
-# Social links
-[[params.social]]
-icon = "github"
-link = "https://github.com"
-label = "GitHub"
-
-[[params.social]]
-icon = "linkedin"
-link = "https://linkedin.com"
-label = "LinkedIn"
+[build]
+  writeStats = true

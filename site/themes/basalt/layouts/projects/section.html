@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>{{ partial "head.html" . }}</head>
+<body class="min-h-screen flex flex-col bg-white text-black dark:bg-black dark:text-white font-sans">
+  {{ partial "header.html" . }}
+
+  {{- $base := .Site.Params.assetsBaseURL -}}
+  {{- $photos := .Params.photos -}}
+
+  <main class="flex-1">
+  {{- if $photos -}}
+    <div class="px-6 py-10">
+      <h1 class="text-2xl font-medium tracking-tight leading-tight">{{ .Title }}</h1>
+      {{- with .Params.description }}
+        <p class="mt-3 text-sm text-black/50 dark:text-white/50 max-w-xl leading-relaxed">{{ . }}</p>
+      {{- end -}}
+      {{- with .Date }}
+        <p class="mt-2 text-xs text-black/40 dark:text-white/40 tabular-nums">{{ .Format "2006" }}</p>
+      {{- end -}}
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 p-1.5" id="photo-grid">
+      {{- range $i, $p := $photos -}}
+        <a
+          class="relative block overflow-hidden bg-black/5 dark:bg-white/10 aspect-[3/2] cursor-zoom-in group"
+          href="{{ $.RelPermalink }}{{ $p.id }}/"
+          data-pswp-src="{{ $base }}/{{ $p.key }}/2400.jpg"
+          {{ if gt $p.width 0 }}data-pswp-width="{{ $p.width }}" data-pswp-height="{{ $p.height }}"{{ end }}
+          {{ if $p.body }}data-has-body="true"{{ end }}
+        >
+          <img
+            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-102"
+            src="{{ $base }}/{{ $p.key }}/600.jpg"
+            srcset="{{ $base }}/{{ $p.key }}/600.avif 600w, {{ $base }}/{{ $p.key }}/1200.avif 1200w"
+            sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+            loading="{{ if lt $i 6 }}eager{{ else }}lazy{{ end }}"
+            alt="{{ with $p.caption }}{{ . }}{{ else }}{{ $.Title }}{{ end }}"
+          >
+          {{- with $p.body -}}
+          <span class="absolute bottom-1.5 right-1.5 text-[10px] text-white/80 bg-black/50 px-1.5 py-0.5 leading-none pointer-events-none font-medium tracking-wide">✦</span>
+          {{- end -}}
+        </a>
+      {{- end -}}
+    </div>
+
+    {{- with .Params.seriesPosts -}}
+      {{- $hasPosts := false -}}
+      {{- range . -}}
+        {{- $post := site.GetPage (printf "/posts/%s" .slug) -}}
+        {{- if and $post (not $post.Params.draft) -}}{{- $hasPosts = true -}}{{- end -}}
+      {{- end -}}
+      {{- if $hasPosts -}}
+      <div class="px-6 py-8">
+        <h2 class="text-xs font-medium tracking-widest uppercase text-black/40 dark:text-white/40 mb-4">Related writing</h2>
+        <ul class="space-y-4">
+          {{- range . -}}
+            {{- $post := site.GetPage (printf "/posts/%s" .slug) -}}
+            {{- if and $post (not $post.Params.draft) -}}
+            <li>
+              <a href="{{ $post.RelPermalink }}" class="group flex items-baseline gap-3">
+                <span class="text-sm font-medium group-hover:opacity-70 transition-opacity">
+                  {{- if .label }}{{ .label }}{{ else }}{{ $post.Title }}{{ end -}}
+                </span>
+                <span class="text-xs text-black/40 dark:text-white/40 tabular-nums whitespace-nowrap">{{ $post.Date.Format "2006-01-02" }}</span>
+                {{- with $post.Params.excerpt -}}
+                <span class="text-xs text-black/50 dark:text-white/50 hidden sm:inline truncate">{{ . }}</span>
+                {{- end -}}
+              </a>
+            </li>
+            {{- end -}}
+          {{- end -}}
+        </ul>
+      </div>
+      {{- end -}}
+    {{- end -}}
+
+    <div class="px-6 py-5 mt-2">
+      <a href="{{ "/projects/" | relURL }}" class="text-sm text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-colors">← All work</a>
+    </div>
+  {{- else -}}
+    {{- $series := sort (where .Sections "Params.draft" "ne" true) "Date" "desc" -}}
+    {{- if $series -}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 p-1.5">
+      {{- range $series -}}
+        {{- $cphotos := .Params.photos -}}
+        {{- $ckey := "" -}}{{- with index $cphotos 0 }}{{ $ckey = .key }}{{ end -}}
+        <a href="{{ .RelPermalink }}" class="relative block overflow-hidden bg-black/5 dark:bg-white/10 aspect-[4/3] group">
+          {{- if ne $ckey "" -}}
+            <div class="project-thumb" style="background-image: url('{{ $base }}/{{ $ckey }}/600.jpg')"></div>
+          {{- else -}}
+            <div class="w-full h-full"></div>
+          {{- end -}}
+          <div class="absolute inset-0 flex flex-col justify-end p-5 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <span class="text-white text-sm font-medium tracking-tight">{{ .Title }}</span>
+          </div>
+        </a>
+      {{- end -}}
+    </div>
+    {{- else -}}
+    <div class="flex-1 flex items-center justify-center px-6 py-24">
+      <p class="text-sm text-black/40 dark:text-white/40">Nothing here yet.</p>
+    </div>
+    {{- end -}}
+  {{- end -}}
+  </main>
+
+  {{ partial "footer.html" . }}
+
+  {{- if $photos -}}
+  <script type="module">
+    import PhotoSwipeLightbox from 'https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.js';
+    const lightbox = new PhotoSwipeLightbox({
+      gallery: '#photo-grid',
+      children: 'a[data-pswp-src]',
+      pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.js'),
+      bgOpacity: 0.96,
+      showHideAnimationType: 'fade',
+    });
+
+    lightbox.addFilter('itemData', (itemData) => {
+      const el = itemData.element;
+      if (el) {
+        itemData.src = el.dataset.pswpSrc;
+        if (el.dataset.pswpWidth)  itemData.width  = parseInt(el.dataset.pswpWidth, 10);
+        if (el.dataset.pswpHeight) itemData.height = parseInt(el.dataset.pswpHeight, 10);
+      }
+      return itemData;
+    });
+
+    lightbox.on('contentLoad', (e) => {
+      const { content } = e;
+      if (content.data.width && content.data.height) return;
+      e.preventDefault();
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = content.data.src;
+      img.onload = () => {
+        content.data.width  = img.naturalWidth;
+        content.data.height = img.naturalHeight;
+        content.element = img;
+        content.instance.invalidateCurrItems();
+        content.instance.updateSize(true);
+      };
+      img.onerror = () => {
+        content.data.width  = window.innerWidth;
+        content.data.height = window.innerWidth;
+        content.element = img;
+        content.instance.invalidateCurrItems();
+        content.instance.updateSize(true);
+      };
+    });
+
+    lightbox.on('uiRegister', function() {
+      lightbox.pswp.ui.registerElement({
+        name: 'photo-note-link',
+        order: 9,
+        isButton: false,
+        appendTo: 'root',
+        onInit: (el, pswp) => {
+          el.style.cssText = [
+            'position:absolute',
+            'bottom:80px',
+            'left:50%',
+            'transform:translateX(-50%)',
+            'z-index:100',
+            'pointer-events:none',
+            'white-space:nowrap',
+          ].join(';');
+
+          const update = () => {
+            const anchor = pswp.currSlide && pswp.currSlide.data && pswp.currSlide.data.element;
+            if (anchor && anchor.dataset.hasBody === 'true') {
+              el.innerHTML = '<a href="' + anchor.href + '" style="'
+                + 'display:inline-block;'
+                + 'pointer-events:auto;'
+                + 'background:rgba(255,255,255,0.15);'
+                + 'backdrop-filter:blur(8px);'
+                + '-webkit-backdrop-filter:blur(8px);'
+                + 'border:1px solid rgba(255,255,255,0.4);'
+                + 'color:#fff;'
+                + 'font-size:13px;'
+                + 'font-weight:600;'
+                + 'letter-spacing:.02em;'
+                + 'padding:10px 20px;'
+                + 'border-radius:4px;'
+                + 'text-decoration:none;'
+                + '">Full post →</a>';
+            } else {
+              el.innerHTML = '';
+            }
+          };
+
+          pswp.on('change', update);
+          pswp.on('afterInit', update);
+        }
+      });
+    });
+
+    lightbox.init();
+  </script>
+  {{- end -}}
+</body>
+</html>

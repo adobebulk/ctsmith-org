@@ -1,0 +1,4 @@
+name = "basalt"
+license = "UNLICENSED"
+description = "Basalt theme for ctsmith.org"
+min_version = "0.109.0"

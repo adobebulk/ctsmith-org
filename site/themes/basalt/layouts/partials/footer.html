@@ -1,0 +1,7 @@
+{{- $s := .Site.Data.settings -}}
+<footer class="px-6 py-4 text-xs text-black/40 dark:text-white/40 flex items-center justify-between gap-4">
+  <span>© {{ now.Year }} {{ $s.photographer | default .Site.Params.photographer }}</span>
+  {{- with .Site.Data.version -}}
+  <span class="opacity-40">v{{ .version }}</span>
+  {{- end -}}
+</footer>

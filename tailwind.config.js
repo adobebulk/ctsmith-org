@@ -1,13 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './site/themes/gallery/layouts/**/*.html',
+    './site/themes/basalt/layouts/**/*.html',
   ],
+  darkMode: 'media',
   theme: {
     extend: {
       fontFamily: {
         sans: [
-          'system-ui', '-apple-system', '"Segoe UI"',
+          'system-ui', '-apple-system', '"Segoe UI"', 'Roboto',
           'Helvetica', 'Arial', 'sans-serif',
         ],
       },

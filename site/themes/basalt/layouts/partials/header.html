@@ -1,0 +1,8 @@
+{{- $s := .Site.Data.settings -}}
+<header class="h-14 flex items-center justify-between px-6">
+  <a href="{{ "/" | relURL }}" class="text-sm font-medium tracking-tight">{{ $s.title | default .Site.Title }}</a>
+  <nav class="flex gap-6 text-sm text-black/40 dark:text-white/40">
+    <a href="{{ "/about/" | relURL }}" class="hover:text-black dark:hover:text-white transition-colors">About</a>
+    <a href="{{ "/projects/" | relURL }}" class="hover:text-black dark:hover:text-white transition-colors">{{ $s.navLabel | default "Work" }}</a>
+  </nav>
+</header>
