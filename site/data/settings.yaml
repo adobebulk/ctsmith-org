@@ -6,4 +6,6 @@ heroPhotoKey: ''
 heroLink: ''
 featured: []
 showSeries: false
-navLinks: []
+navLinks:
+  - label: photos
+    url: https://photos.ctsmith.org
