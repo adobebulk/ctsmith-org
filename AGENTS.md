@@ -114,7 +114,7 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.3.0**
+Current version: **0.4.0**
 
 ---
 
@@ -167,8 +167,8 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ## Hugo template notes
 
-- Homepage (`index.html`): splash from `_index.md` title/tagline, optional body, nav from published pages with `nav: true` plus Work.
-- Work is `/projects/` (series list + per-series grids + PhotoSwipe). Empty state when no published series.
+- Homepage (`index.html`): splash from `_index.md` title/tagline, optional body, nav from published pages with `nav: true`, plus Series when `settings.showSeries` is not false.
+- Series is `/projects/` (list + grids + PhotoSwipe). Empty state when no published series.
 - Subpages use `layouts/pages/single.html`, permalinks `/:slug/`.
 - No build-time image processing. Asset URLs are `{{ .Site.Params.assetsBaseURL }}/<key>/<size>.<fmt>`.
 - `_pool` is `draft: true` and filtered from public templates.
@@ -195,7 +195,11 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ## Current state (last updated: 2026-09-07)
 
-### v0.3.0 — CURRENT
+### v0.4.0 — CURRENT
+
+- Photo collections tab is **Series** again (photos-site name). Settings toggle `showSeries` hides Series + Pool in admin and the public nav link. Rebuild to publish the public change.
+
+### v0.3.0
 
 - Admin Rebuild bar polls `GET /api/deploy-status` (Cloudflare Pages API) when `CF_ACCOUNT_ID` + `CF_API_TOKEN` (Pages Read) are set.
 

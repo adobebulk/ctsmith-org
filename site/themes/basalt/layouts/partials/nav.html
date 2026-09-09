@@ -7,5 +7,7 @@
       <a href="{{ .RelPermalink }}" class="hover:text-black dark:hover:text-white transition-colors">{{ .Title }}</a>
     {{- end -}}
   {{- end -}}
-  <a href="{{ "/projects/" | relURL }}" class="hover:text-black dark:hover:text-white transition-colors">{{ $s.navLabel | default "Work" }}</a>
+  {{- if ne $s.showSeries false -}}
+  <a href="{{ "/projects/" | relURL }}" class="hover:text-black dark:hover:text-white transition-colors">{{ $s.navLabel | default "Series" }}</a>
+  {{- end -}}
 </nav>

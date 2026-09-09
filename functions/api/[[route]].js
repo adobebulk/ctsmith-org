@@ -298,12 +298,13 @@ async function newSeriesSlug(env) {
 
 const DEFAULT_SETTINGS = {
   title: "C.T. Smith",
-  navLabel: "Work",
+  navLabel: "Series",
   photographer: "C.T. Smith",
   description: "Do the Right Thing.",
   heroPhotoKey: "",
   heroLink: "",
   featured: [],
+  showSeries: true,
 };
 
 async function listGithubDirs(env, path) {
@@ -802,7 +803,7 @@ export async function onRequest(ctx) {
     // ── PATCH /api/settings ──────────────────────────────────────────────────
     if (method === "PATCH" && segments.length === 1 && segments[0] === "settings") {
       const body = await request.json();
-      const allowedKeys = ["title", "navLabel", "photographer", "description", "heroPhotoKey", "heroLink", "featured"];
+      const allowedKeys = ["title", "navLabel", "photographer", "description", "heroPhotoKey", "heroLink", "featured", "showSeries"];
       const updated = await readSettings(env);
       for (const k of allowedKeys) {
         if (body[k] !== undefined) updated[k] = body[k];

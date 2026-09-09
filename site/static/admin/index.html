@@ -572,7 +572,7 @@
   <!-- Tab bar -->
   <div class="tab-bar">
     <button class="tab-btn active" id="tab-btn-pages" onclick="switchTab('pages')">Pages</button>
-    <button class="tab-btn" id="tab-btn-series" onclick="switchTab('series')">Work</button>
+    <button class="tab-btn" id="tab-btn-series" onclick="switchTab('series')">Series</button>
     <button class="tab-btn" id="tab-btn-pool" onclick="switchTab('pool')">Pool</button>
     <button class="tab-btn" id="tab-btn-posts" onclick="switchTab('posts')">Posts</button>
   </div>
@@ -601,10 +601,10 @@
     </div>
   </div>
 
-  <!-- Work tab -->
+  <!-- Series tab -->
   <div id="tab-series" class="hidden">
     <div class="section-head">
-      <h2>Work</h2>
+      <h2>Series</h2>
     </div>
     <div class="table-wrap">
       <table>
@@ -811,12 +811,16 @@
       <p class="field-hint" style="margin-top:0">Splash name and tagline are edited on the homepage (Pages tab). These are fallbacks and footer/nav extras.</p>
       <div class="field"><label>Site title (fallback)</label>
         <input type="text" id="set-title" placeholder="C.T. Smith"></div>
-      <div class="field"><label>Work nav label</label>
-        <input type="text" id="set-nav" placeholder="Work"></div>
+      <div class="field"><label>Series nav label</label>
+        <input type="text" id="set-nav" placeholder="Series"></div>
       <div class="field"><label>Footer name</label>
         <input type="text" id="set-photographer" placeholder="C.T. Smith"></div>
       <div class="field"><label>Site description (fallback)</label>
         <textarea id="set-description" placeholder="Do the Right Thing."></textarea></div>
+      <div class="field-check">
+        <input type="checkbox" id="set-show-series" checked>
+        <label for="set-show-series">Show Series on the public site and in this admin (photo collections + Pool)</label>
+      </div>
 
       <div style="height:1px;background:var(--border-light)"></div>
 
@@ -825,7 +829,7 @@
         <div class="featured-list" id="featured-list"></div>
         <div class="featured-add-row">
           <select id="feat-type" onchange="onFeatTypeChange()">
-            <option value="series">Work series</option>
+            <option value="series">Series</option>
             <option value="post">Post</option>
             <option value="photo">Photo</option>
           </select>
@@ -921,6 +925,7 @@ let sheetStack    = [];
 
 // ── Init ─────────────────────────────────────────────────────────
 loadPagesList();
+loadAdminSettings();
 refreshStagingStatus();
 syncDeployStatus();
 loadVersion();
@@ -931,6 +936,20 @@ async function loadVersion() {
     const el = document.getElementById('version-tag');
     if (el && v.version) el.textContent = 'v' + v.version;
   } catch(_) {}
+}
+
+function applySeriesVisibility(show) {
+  const on = show !== false;
+  document.getElementById('tab-btn-series').classList.toggle('hidden', !on);
+  document.getElementById('tab-btn-pool').classList.toggle('hidden', !on);
+  if (!on && (currentTab === 'series' || currentTab === 'pool')) switchTab('pages');
+}
+
+async function loadAdminSettings() {
+  try {
+    const s = await api('GET', '/settings');
+    applySeriesVisibility(s.showSeries !== false);
+  } catch (_) {}
 }
 
 // ── Tab switching ─────────────────────────────────────────────────
@@ -2026,6 +2045,7 @@ async function openSettings() {
     document.getElementById('set-nav').value          = s.navLabel     ?? '';
     document.getElementById('set-photographer').value = s.photographer ?? '';
     document.getElementById('set-description').value  = s.description  ?? '';
+    document.getElementById('set-show-series').checked = s.showSeries !== false;
     featuredItems = Array.isArray(s.featured) ? s.featured.map(f => ({...f})) : [];
     renderFeaturedList();
   } catch(e) { toast('Failed to load settings: ' + e.message, true); }
@@ -2099,9 +2119,11 @@ async function saveSettings() {
     photographer: document.getElementById('set-photographer').value.trim(),
     description:  document.getElementById('set-description').value.trim(),
     featured:     featuredItems,
+    showSeries:   document.getElementById('set-show-series').checked,
   };
   try {
     await api('PATCH', '/settings', body);
+    applySeriesVisibility(body.showSeries);
     closeSheet('overlay-settings');
     await refreshStagingStatus();
     toast('Settings saved — rebuild to publish');
