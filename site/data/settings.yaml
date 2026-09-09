@@ -9,3 +9,10 @@ showSeries: false
 navLinks:
   - label: photos
     url: https://photos.ctsmith.org
+nav:
+  - type: page
+    slug: about
+    label: ''
+  - type: link
+    label: Photos
+    url: https://photos.ctsmith.org
