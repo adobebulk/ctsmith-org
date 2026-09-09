@@ -1,6 +1,22 @@
 {{- $s := .Site.Data.settings -}}
-{{- $section := site.GetPage "/pages" -}}
 <nav class="flex gap-6 text-sm text-black/40 dark:text-white/40">
+{{- if isset $s "nav" -}}
+  {{- range $s.nav -}}
+    {{- if eq .type "page" -}}
+      {{- $p := site.GetPage (printf "/pages/%s" .slug) -}}
+      {{- if and $p (not $p.Params.draft) -}}
+        <a href="{{ $p.RelPermalink }}" class="hover:text-black dark:hover:text-white transition-colors">{{ if .label }}{{ .label }}{{ else }}{{ $p.Title }}{{ end }}</a>
+      {{- end -}}
+    {{- else if eq .type "link" -}}
+      {{- if and .label .url -}}
+        <a href="{{ .url }}" class="hover:text-black dark:hover:text-white transition-colors"{{ if or (hasPrefix .url "http://") (hasPrefix .url "https://") }} rel="noopener noreferrer"{{ end }}>{{ .label }}</a>
+      {{- end -}}
+    {{- else if and (eq .type "series") (ne $s.showSeries false) -}}
+      <a href="{{ "/projects/" | relURL }}" class="hover:text-black dark:hover:text-white transition-colors">{{ if .label }}{{ .label }}{{ else }}{{ $s.navLabel | default "Series" }}{{ end }}</a>
+    {{- end -}}
+  {{- end -}}
+{{- else -}}
+  {{- $section := site.GetPage "/pages" -}}
   {{- with $section -}}
     {{- $navPages := where (where .RegularPages "Params.draft" "ne" true) "Params.nav" true -}}
     {{- range sort $navPages "Params.weight" "asc" -}}
@@ -15,4 +31,5 @@
   {{- if ne $s.showSeries false -}}
   <a href="{{ "/projects/" | relURL }}" class="hover:text-black dark:hover:text-white transition-colors">{{ $s.navLabel | default "Series" }}</a>
   {{- end -}}
+{{- end -}}
 </nav>

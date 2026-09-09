@@ -804,7 +804,7 @@ export async function onRequest(ctx) {
     // ── PATCH /api/settings ──────────────────────────────────────────────────
     if (method === "PATCH" && segments.length === 1 && segments[0] === "settings") {
       const body = await request.json();
-      const allowedKeys = ["title", "navLabel", "photographer", "description", "heroPhotoKey", "heroLink", "featured", "showSeries", "navLinks"];
+      const allowedKeys = ["title", "navLabel", "photographer", "description", "heroPhotoKey", "heroLink", "featured", "showSeries", "navLinks", "nav"];
       const updated = await readSettings(env);
       for (const k of allowedKeys) {
         if (body[k] !== undefined) updated[k] = body[k];
@@ -816,6 +816,26 @@ export async function onRequest(ctx) {
             url: String(l?.url ?? "").trim(),
           }))
           .filter((l) => l.label && /^(https?:\/\/|\/)/i.test(l.url) && !/^javascript:/i.test(l.url));
+      }
+      if (Array.isArray(updated.nav)) {
+        updated.nav = updated.nav.map((item) => {
+          const type = item?.type;
+          if (type === "page") {
+            const slug = String(item.slug ?? "").trim();
+            if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return null;
+            return { type: "page", slug, label: String(item.label ?? "").trim() };
+          }
+          if (type === "link") {
+            const label = String(item.label ?? "").trim();
+            const url = String(item.url ?? "").trim();
+            if (!label || !/^(https?:\/\/|\/)/i.test(url) || /^javascript:/i.test(url)) return null;
+            return { type: "link", label, url };
+          }
+          if (type === "series") {
+            return { type: "series", label: String(item.label ?? "").trim() };
+          }
+          return null;
+        }).filter(Boolean);
       }
       await stageSettings(env, updated);
       return json(updated);

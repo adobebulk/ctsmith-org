@@ -114,7 +114,7 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.5.0**
+Current version: **0.6.0**
 
 ---
 
@@ -167,7 +167,7 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ## Hugo template notes
 
-- Homepage (`index.html`): splash from `_index.md` title/tagline, optional body, nav from published pages with `nav: true`, then `settings.navLinks`, then Series when `settings.showSeries` is not false.
+- Public navbar: `settings.nav` if set; otherwise pages with `nav: true`, `navLinks`, then Series when `showSeries` is not false.
 - Series is `/projects/` (list + grids + PhotoSwipe). Empty state when no published series.
 - Subpages use `layouts/pages/single.html`, permalinks `/:slug/`.
 - No build-time image processing. Asset URLs are `{{ .Site.Params.assetsBaseURL }}/<key>/<size>.<fmt>`.
@@ -195,7 +195,11 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ## Current state (last updated: 2026-09-07)
 
-### v0.5.0 — CURRENT
+### v0.6.0 — CURRENT
+
+- Admin **Nav** tab is the source of truth for the public navbar: reorder pages, Series, and hyperlinks; rename labels. `settings.nav` is `[{type, slug?, label?, url?}]`. Unset `nav` still falls back to page flags + navLinks + Series.
+
+### v0.5.0
 
 - Settings **Navbar links**: `{ label, url }` hyperlinks (https/http or `/…`) in public nav after pages, before Series.
 
