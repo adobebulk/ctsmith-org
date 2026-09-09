@@ -12,3 +12,6 @@ GITHUB_TOKEN=ghp_your_scoped_token_here
 GITHUB_REPO=adobebulk/ctsmith-org
 DEPLOY_HOOK_URL=https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/your-hook-id
 PUBLIC_ORIGIN=https://ctsmith.org
+CF_ACCOUNT_ID=your_cloudflare_account_id
+CF_API_TOKEN=your_pages_read_token
+CF_PAGES_PROJECT=ctsmith-org

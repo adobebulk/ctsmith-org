@@ -37,8 +37,11 @@ Configure these on the **Pages project → Settings → Functions → Bindings &
 | `DEPLOY_HOOK_URL` | Secret | Pages deploy-hook URL (admin "Rebuild" target) |
 | `ASSETS_R2_PUBLIC_URL` | Plain var | `https://r2.ctsmith.org` |
 | `PUBLIC_ORIGIN` | Plain var | `https://ctsmith.org` |
-| `PACKAGE_VERSION` | Plain var | keep in sync with `package.json` (`0.1.0`) |
+| `PACKAGE_VERSION` | Plain var | keep in sync with `package.json` |
 | `HUGO_VERSION` | Build env | `0.161.1` |
+| `CF_ACCOUNT_ID` | Plain var | (optional) account ID for admin build-status |
+| `CF_API_TOKEN` | Secret | (optional) Pages Read + Cache Purge |
+| `CF_PAGES_PROJECT` | Plain var | (optional) defaults to `ctsmith-org` |
 
 ---
 

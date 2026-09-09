@@ -16,10 +16,13 @@
  *   DEPLOY_HOOK_URL    Secret — Cloudflare Pages deploy hook URL (admin "Rebuild" button)
  *   PUBLIC_ORIGIN      Var — public site origin, e.g. "https://ctsmith.org"
  *
- * Optional (for global CDN cache purge on downloadable toggle):
- *   CF_ZONE_ID         Var — Cloudflare zone ID for ctsmith.org
- *   CF_API_TOKEN       Secret — token with Cache Purge permission on the zone
- *   Without these, cache purge falls back to local datacenter only (caches.default.delete).
+ * Optional (CDN purge + admin build status):
+ *   CF_ZONE_ID         Var — Cloudflare zone ID for ctsmith.org (cache purge)
+ *   CF_ACCOUNT_ID      Var — account ID (admin build-status poll)
+ *   CF_API_TOKEN       Secret — Cache Purge and/or Cloudflare Pages Read
+ *   CF_PAGES_PROJECT   Var — Pages project name; defaults to ctsmith-org
+ *   Without CF_ZONE_ID/token, cache purge is this PoP only.
+ *   Without CF_ACCOUNT_ID/token, Rebuild still works but the admin cannot show live build status.
  */
 
 /** @param {import("@cloudflare/workers-types").EventContext} ctx */
@@ -35,7 +38,9 @@ export function getEnv(ctx) {
     deployHookUrl:   e.DEPLOY_HOOK_URL,
     publicOrigin:    e.PUBLIC_ORIGIN || "https://ctsmith.org",
     cfZoneId:        e.CF_ZONE_ID,       // optional
+    cfAccountId:     e.CF_ACCOUNT_ID,    // optional — admin build status
     cfApiToken:      e.CF_API_TOKEN,     // optional
+    cfPagesProject:  e.CF_PAGES_PROJECT || "ctsmith-org",
     packageVersion:  e.PACKAGE_VERSION,
   };
 }

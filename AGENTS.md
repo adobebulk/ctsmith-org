@@ -114,7 +114,7 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.2.3**
+Current version: **0.3.0**
 
 ---
 
@@ -153,6 +153,7 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 | Method | Path | Description |
 |---|---|---|
+| GET | `/api/deploy-status` | Latest production Pages deploy `{ configured, live, ok, message, commit }` |
 | GET | `/api/home` | Homepage title, tagline, body |
 | PATCH | `/api/home` | Update homepage; syncs settings title/description |
 | GET | `/api/pages` | List subpages |
@@ -194,7 +195,11 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ## Current state (last updated: 2026-09-07)
 
-### v0.2.3 — CURRENT
+### v0.3.0 — CURRENT
+
+- Admin Rebuild bar polls `GET /api/deploy-status` (Cloudflare Pages API) when `CF_ACCOUNT_ID` + `CF_API_TOKEN` (Pages Read) are set.
+
+### v0.2.3
 
 - Do not bake an empty `DEPLOY_HOOK_URL` from wrangler.toml; set it as a Pages secret.
 

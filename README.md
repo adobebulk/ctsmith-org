@@ -2,7 +2,7 @@
 
 Personal site for C.T. Smith. A fast static Hugo site for visitors, with a private serverless admin (Basalt) for managing photos and posts — no always-on server.
 
-Everything runs on **Cloudflare + GitHub**. Photos live in R2 (never git). Metadata commits are text-only. Current version: **0.2.3**
+Everything runs on **Cloudflare + GitHub**. Photos live in R2 (never git). Metadata commits are text-only. Current version: **0.3.0**
 
 CMS architecture is imported from [static-photos](https://github.com/adobebulk/static-photos) **v1.5.7**. That project is a separate site (`photos.ctsmith.org`) and is not modified here.
 
@@ -146,7 +146,9 @@ Staged changes are visible in the admin immediately. Visitors see the updated si
 | `ASSETS_R2_PUBLIC_URL` | Var | Public custom domain for the assets bucket, e.g. `https://r2.ctsmith.org` |
 | `PUBLIC_ORIGIN` | Var | Public site origin, `https://ctsmith.org` — used for CDN purge URLs |
 | `CF_ZONE_ID` | Var | (optional) Zone ID for global CDN cache purge |
-| `CF_API_TOKEN` | Secret | (optional) Token with Cache Purge permission |
+| `CF_ACCOUNT_ID` | Var | (optional) Account ID — admin Rebuild bar polls Pages deploy status |
+| `CF_API_TOKEN` | Secret | (optional) Cache Purge and/or **Cloudflare Pages Read** |
+| `CF_PAGES_PROJECT` | Var | (optional) Pages project name; defaults to `ctsmith-org` |
 
 See **RUNBOOK.md** for account setup.
 

@@ -734,6 +734,53 @@ export async function onRequest(ctx) {
       });
     }
 
+    // ── GET /api/deploy-status ───────────────────────────────────────────────
+    if (method === "GET" && segments.length === 1 && segments[0] === "deploy-status") {
+      if (!env.cfApiToken || !env.cfAccountId) {
+        return json({ configured: false });
+      }
+      const project = encodeURIComponent(env.cfPagesProject);
+      const url =
+        `https://api.cloudflare.com/client/v4/accounts/${env.cfAccountId}` +
+        `/pages/projects/${project}/deployments?env=production&per_page=1`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${env.cfApiToken}` },
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload.success) {
+        const msg = payload.errors?.[0]?.message || `Cloudflare API ${res.status}`;
+        return err(msg, 502);
+      }
+      const dep = payload.result?.[0];
+      if (!dep) return json({ configured: true, id: null, live: false, ok: true, message: "No deployments yet" });
+
+      const stage = dep.latest_stage || {};
+      const stageStatus = stage.status || "";
+      const stageName = stage.name || "";
+      const live = stageStatus === "active" || stageName === "queued";
+      const failed = stageStatus === "failure" || stageStatus === "canceled" || dep.is_skipped;
+      const ok = !failed && !live;
+      const short = (dep.deployment_trigger?.metadata?.commit_hash || dep.id || "").slice(0, 7);
+      let message = "Site up to date";
+      if (live) message = stageName ? `Building — ${stageName}` : "Building…";
+      else if (stageStatus === "failure") message = "Build failed";
+      else if (stageStatus === "canceled") message = "Build canceled";
+      else if (dep.is_skipped) message = "Build skipped";
+      else if (short) message = `Live — ${short}`;
+
+      return json({
+        configured: true,
+        id: dep.id,
+        live,
+        ok,
+        status: stageStatus,
+        stage: stageName,
+        commit: short,
+        message,
+        created_on: dep.created_on,
+      });
+    }
+
     // ── POST /api/deploy ─────────────────────────────────────────────────────
     if (method === "POST" && segments.length === 1 && segments[0] === "deploy") {
       if (!env.deployHookUrl) return err("DEPLOY_HOOK_URL not configured", 503);
