@@ -305,6 +305,7 @@ const DEFAULT_SETTINGS = {
   heroLink: "",
   featured: [],
   showSeries: true,
+  navLinks: [],
 };
 
 async function listGithubDirs(env, path) {
@@ -803,10 +804,18 @@ export async function onRequest(ctx) {
     // ── PATCH /api/settings ──────────────────────────────────────────────────
     if (method === "PATCH" && segments.length === 1 && segments[0] === "settings") {
       const body = await request.json();
-      const allowedKeys = ["title", "navLabel", "photographer", "description", "heroPhotoKey", "heroLink", "featured", "showSeries"];
+      const allowedKeys = ["title", "navLabel", "photographer", "description", "heroPhotoKey", "heroLink", "featured", "showSeries", "navLinks"];
       const updated = await readSettings(env);
       for (const k of allowedKeys) {
         if (body[k] !== undefined) updated[k] = body[k];
+      }
+      if (Array.isArray(updated.navLinks)) {
+        updated.navLinks = updated.navLinks
+          .map((l) => ({
+            label: String(l?.label ?? "").trim(),
+            url: String(l?.url ?? "").trim(),
+          }))
+          .filter((l) => l.label && /^(https?:\/\/|\/)/i.test(l.url) && !/^javascript:/i.test(l.url));
       }
       await stageSettings(env, updated);
       return json(updated);

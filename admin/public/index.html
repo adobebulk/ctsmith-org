@@ -825,6 +825,19 @@
       <div style="height:1px;background:var(--border-light)"></div>
 
       <div class="field">
+        <label>Navbar links</label>
+        <p class="field-hint">Pure links (other sites or subdomains). Shown after pages, before Series.</p>
+        <div class="featured-list" id="nav-links-list"></div>
+        <div class="featured-add-row">
+          <input type="text" id="nav-link-label" class="feat-label-input" placeholder="Photos" style="width:110px">
+          <input type="text" id="nav-link-url" class="feat-slug-input" placeholder="https://photos.ctsmith.org">
+          <button class="btn-outline" onclick="addNavLink()">Add</button>
+        </div>
+      </div>
+
+      <div style="height:1px;background:var(--border-light)"></div>
+
+      <div class="field">
         <label>Featured items</label>
         <div class="featured-list" id="featured-list"></div>
         <div class="featured-add-row">
@@ -920,6 +933,7 @@ let editingPost   = null;
 let editingPage   = null;
 let photoPickerTarget = 'post-body';
 let featuredItems = [];
+let navLinks      = [];
 let panelSettings = {}; // cached per-panel settings (series detail)
 let sheetStack    = [];
 
@@ -2047,7 +2061,9 @@ async function openSettings() {
     document.getElementById('set-description').value  = s.description  ?? '';
     document.getElementById('set-show-series').checked = s.showSeries !== false;
     featuredItems = Array.isArray(s.featured) ? s.featured.map(f => ({...f})) : [];
+    navLinks = Array.isArray(s.navLinks) ? s.navLinks.map(l => ({...l})) : [];
     renderFeaturedList();
+    renderNavLinks();
   } catch(e) { toast('Failed to load settings: ' + e.message, true); }
 }
 
@@ -2112,6 +2128,48 @@ function moveFeatured(idx, dir) {
   renderFeaturedList();
 }
 
+function renderNavLinks() {
+  const list = document.getElementById('nav-links-list');
+  if (!navLinks.length) {
+    list.innerHTML = `<div style="font-size:11px;color:var(--muted);padding:4px 0">No extra navbar links</div>`;
+    return;
+  }
+  list.innerHTML = navLinks.map((item, idx) => `
+    <div class="featured-item">
+      <span class="featured-item-label">${esc(item.label)} → ${esc(item.url)}</span>
+      <button class="btn-icon" ${idx === 0 ? 'disabled' : ''} onclick="moveNavLink(${idx},-1)">▲</button>
+      <button class="btn-icon" ${idx === navLinks.length-1 ? 'disabled' : ''} onclick="moveNavLink(${idx},1)">▼</button>
+      <button class="btn-icon" onclick="removeNavLink(${idx})" style="color:var(--red)">✕</button>
+    </div>
+  `).join('');
+}
+
+function addNavLink() {
+  const label = document.getElementById('nav-link-label').value.trim();
+  const url = document.getElementById('nav-link-url').value.trim();
+  if (!label) { toast('Label is required', true); return; }
+  if (!/^(https?:\/\/|\/)/i.test(url) || /^javascript:/i.test(url)) {
+    toast('URL must start with https://, http://, or /', true);
+    return;
+  }
+  navLinks.push({ label, url });
+  document.getElementById('nav-link-label').value = '';
+  document.getElementById('nav-link-url').value = '';
+  renderNavLinks();
+}
+
+function removeNavLink(idx) {
+  navLinks.splice(idx, 1);
+  renderNavLinks();
+}
+
+function moveNavLink(idx, dir) {
+  const ni = idx + dir;
+  if (ni < 0 || ni >= navLinks.length) return;
+  [navLinks[idx], navLinks[ni]] = [navLinks[ni], navLinks[idx]];
+  renderNavLinks();
+}
+
 async function saveSettings() {
   const body = {
     title:        document.getElementById('set-title').value.trim(),
@@ -2120,6 +2178,7 @@ async function saveSettings() {
     description:  document.getElementById('set-description').value.trim(),
     featured:     featuredItems,
     showSeries:   document.getElementById('set-show-series').checked,
+    navLinks,
   };
   try {
     await api('PATCH', '/settings', body);

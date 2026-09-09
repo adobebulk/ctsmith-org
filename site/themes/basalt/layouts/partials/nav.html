@@ -7,6 +7,11 @@
       <a href="{{ .RelPermalink }}" class="hover:text-black dark:hover:text-white transition-colors">{{ .Title }}</a>
     {{- end -}}
   {{- end -}}
+  {{- range $s.navLinks -}}
+    {{- if and .label .url -}}
+      <a href="{{ .url }}" class="hover:text-black dark:hover:text-white transition-colors"{{ if or (hasPrefix .url "http://") (hasPrefix .url "https://") }} rel="noopener noreferrer"{{ end }}>{{ .label }}</a>
+    {{- end -}}
+  {{- end -}}
   {{- if ne $s.showSeries false -}}
   <a href="{{ "/projects/" | relURL }}" class="hover:text-black dark:hover:text-white transition-colors">{{ $s.navLabel | default "Series" }}</a>
   {{- end -}}
