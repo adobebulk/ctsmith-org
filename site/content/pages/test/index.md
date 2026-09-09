@@ -10,3 +10,4 @@ This is a test
 
 ## Many Things
 in life require hard work and effort
+![001](/assets/_pool/001/1200.jpg)

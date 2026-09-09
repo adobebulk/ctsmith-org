@@ -5,7 +5,7 @@ description: Do the Right Thing.
 heroPhotoKey: ''
 heroLink: ''
 featured: []
-showSeries: false
+showSeries: true
 navLinks:
   - label: photos
     url: https://photos.ctsmith.org
@@ -16,6 +16,3 @@ nav:
   - type: link
     label: Photos
     url: https://photos.ctsmith.org
-  - type: page
-    slug: test
-    label: ''
