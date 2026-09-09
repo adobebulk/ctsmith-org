@@ -16,3 +16,6 @@ nav:
   - type: link
     label: Photos
     url: https://photos.ctsmith.org
+  - type: page
+    slug: test
+    label: ''
