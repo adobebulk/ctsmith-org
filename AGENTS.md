@@ -114,7 +114,7 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.2.2**
+Current version: **0.2.3**
 
 ---
 
@@ -194,7 +194,11 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ## Current state (last updated: 2026-09-07)
 
-### v0.2.2 — CURRENT
+### v0.2.3 — CURRENT
+
+- Do not bake an empty `DEPLOY_HOOK_URL` from wrangler.toml; set it as a Pages secret.
+
+### v0.2.2
 
 - Hugo 0.161.1: `build.render` instead of removed `_build`; `locale` instead of deprecated `languageCode`.
 
