@@ -329,6 +329,13 @@ async function githubFileFallback(env, path) {
   }
 }
 
+async function githubFileRequired(env, path) {
+  if (!env.githubToken || !env.githubRepo) {
+    throw new Error("GitHub credentials not configured");
+  }
+  return getFile(env.githubToken, env.githubRepo, path);
+}
+
 async function readHome(env) {
   const result = await readStaged(
     env.stagingBucket,
@@ -361,16 +368,20 @@ async function readManifest(env, slug) {
   return { ...parseFrontMatter(result.content), raw: result.content };
 }
 
-async function loadSettingsFile(env) {
+async function loadSettingsFile(env, { requireGithub = false } = {}) {
   return readStaged(
     env.stagingBucket,
     settingsPath,
-    async (p) => githubFileFallback(env, p)
+    // Reads may degrade to defaults, but writes must never treat an unavailable
+    // GitHub baseline as an empty settings file and overwrite real configuration.
+    async (p) => requireGithub
+      ? githubFileRequired(env, p)
+      : githubFileFallback(env, p)
   );
 }
 
-async function readSettings(env) {
-  const result = await loadSettingsFile(env);
+async function readSettings(env, { requireGithub = false } = {}) {
+  const result = await loadSettingsFile(env, { requireGithub });
   const settings = result ? (yaml.load(result.content) ?? {}) : {};
   return { ...DEFAULT_SETTINGS, ...settings };
 }
@@ -805,7 +816,7 @@ export async function onRequest(ctx) {
     if (method === "PATCH" && segments.length === 1 && segments[0] === "settings") {
       const body = await request.json();
       const allowedKeys = ["title", "navLabel", "photographer", "description", "heroPhotoKey", "heroLink", "featured", "showSeries", "navLinks", "nav"];
-      const updated = await readSettings(env);
+      const updated = await readSettings(env, { requireGithub: true });
       for (const k of allowedKeys) {
         if (body[k] !== undefined) updated[k] = body[k];
       }

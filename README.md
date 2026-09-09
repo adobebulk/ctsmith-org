@@ -2,7 +2,7 @@
 
 Personal site for C.T. Smith. A fast static Hugo site for visitors, with a private serverless admin (Basalt) for managing photos and posts — no always-on server.
 
-Everything runs on **Cloudflare + GitHub**. Photos live in R2 (never git). Metadata commits are text-only. Current version: **0.6.1**
+Everything runs on **Cloudflare + GitHub**. Photos live in R2 (never git). Metadata commits are text-only. Current version: **0.6.2**
 
 CMS architecture is imported from [static-photos](https://github.com/adobebulk/static-photos) **v1.5.7**. That project is a separate site (`photos.ctsmith.org`) and is not modified here.
 
@@ -128,9 +128,9 @@ No image files ever enter `content/` or git. All photos live in R2.
 
 1. **Upload photos** via the admin panel — photos are resized and stored in R2; metadata is staged in `_pending/` (ORIGINALS_BUCKET).
 2. **Edit metadata** (captions, cover, series settings) — all changes are staged.
-3. **Rebuild** — the admin "Rebuild" button flushes all staged changes into one GitHub commit, then pings the Cloudflare Pages deploy hook. Pages rebuilds the site.
+3. **Rebuild** — the admin "Rebuild" button flushes all staged changes into one GitHub commit, then pings the Cloudflare Pages deploy hook. Pages rebuilds the site. When `CF_ACCOUNT_ID` and `CF_API_TOKEN` (Pages Read) are set, the rebuild bar polls `GET /api/deploy-status` until the production deploy finishes or three minutes elapse.
 
-Staged changes are visible in the admin immediately. Visitors see the updated site after the Pages build completes (~30 s).
+Staged changes are visible in the admin immediately. Visitors see the updated site after the Pages build completes (~30 s). Settings reads can degrade when GitHub is unavailable, but settings/nav writes require a readable GitHub baseline unless a staged settings file already exists.
 
 ---
 

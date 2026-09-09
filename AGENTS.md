@@ -114,7 +114,7 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.6.1**
+Current version: **0.6.2**
 
 ---
 
@@ -193,9 +193,14 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ---
 
-## Current state (last updated: 2026-09-07)
+## Current state (last updated: 2026-09-08)
 
-### v0.6.1 — CURRENT
+### v0.6.2 — CURRENT
+
+- Settings/nav writes require a readable GitHub baseline unless settings are already staged, so a token/API failure cannot overwrite live `settings.yaml` with defaults.
+- Admin Rebuild bar stops polling after three minutes even if Cloudflare still reports an active build.
+
+### v0.6.1
 
 - Navbar editor lives on the Pages tab. Page **Nav** badge follows `settings.nav`, not page front matter.
 
