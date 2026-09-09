@@ -572,7 +572,6 @@
   <!-- Tab bar -->
   <div class="tab-bar">
     <button class="tab-btn active" id="tab-btn-pages" onclick="switchTab('pages')">Pages</button>
-    <button class="tab-btn" id="tab-btn-nav" onclick="switchTab('nav')">Nav</button>
     <button class="tab-btn" id="tab-btn-series" onclick="switchTab('series')">Series</button>
     <button class="tab-btn" id="tab-btn-pool" onclick="switchTab('pool')">Pool</button>
     <button class="tab-btn" id="tab-btn-posts" onclick="switchTab('posts')">Posts</button>
@@ -600,14 +599,11 @@
     <div id="pages-list" style="display:flex;flex-direction:column;gap:6px">
       <div class="empty" style="border:1px solid var(--border-light)">Loading…</div>
     </div>
-  </div>
 
-  <!-- Nav tab -->
-  <div id="tab-nav" class="hidden">
-    <div class="section-head" style="margin-bottom:12px">
+    <div class="section-head" style="margin:28px 0 12px">
       <h2>Navbar</h2>
     </div>
-    <p class="field-hint" style="margin:0 0 12px">Order and labels for the public navbar. Rebuild to publish.</p>
+    <p class="field-hint" style="margin:0 0 12px">Public navbar order and labels. The Nav badge on a page matches this list. Rebuild to publish.</p>
     <div id="nav-items-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">
       <div class="empty" style="border:1px solid var(--border-light)">Loading…</div>
     </div>
@@ -807,7 +803,7 @@
         </div>
         <textarea id="page-body" rows="12" style="min-height:220px" placeholder="Write this page in markdown…"></textarea>
       </div>
-      <p class="field-hint">Add this page to the public navbar from the Nav tab.</p>
+      <p class="field-hint">Add this page to the public navbar in the Navbar section on Pages.</p>
       <div class="field-check">
         <input type="checkbox" id="page-draft" checked>
         <label for="page-draft">Draft — hide from public site</label>
@@ -1003,23 +999,20 @@ async function loadAdminSettings() {
 function switchTab(tab) {
   currentTab = tab;
   document.getElementById('tab-pages').classList.toggle('hidden', tab !== 'pages');
-  document.getElementById('tab-nav').classList.toggle('hidden', tab !== 'nav');
   document.getElementById('tab-series').classList.toggle('hidden', tab !== 'series');
   document.getElementById('tab-posts').classList.toggle('hidden', tab !== 'posts');
   document.getElementById('tab-pool').classList.toggle('hidden', tab !== 'pool');
   document.getElementById('tab-btn-pages').classList.toggle('active', tab === 'pages');
-  document.getElementById('tab-btn-nav').classList.toggle('active', tab === 'nav');
   document.getElementById('tab-btn-series').classList.toggle('active', tab === 'series');
   document.getElementById('tab-btn-posts').classList.toggle('active', tab === 'posts');
   document.getElementById('tab-btn-pool').classList.toggle('active', tab === 'pool');
   const newBtn = document.getElementById('btn-new');
-  newBtn.style.display = (tab === 'pool' || tab === 'nav') ? 'none' : '';
+  newBtn.style.display = tab === 'pool' ? 'none' : '';
   newBtn.textContent = tab === 'pages' ? '+ New page'
     : tab === 'series' ? '+ New series'
     : '+ New post';
   if (tab !== 'pool') document.getElementById('pool-move-bar').classList.add('hidden');
   if (tab === 'pages') loadPagesList();
-  if (tab === 'nav') loadNavEditor();
   if (tab === 'posts') loadPostsList();
   if (tab === 'pool') loadPool();
   if (tab === 'series') loadProjects();
@@ -1581,11 +1574,16 @@ async function deleteSeries(slug) {
 }
 
 // ── Pages + homepage ──────────────────────────────────────────────
+function pageIsInNav(slug) {
+  return navItems.some(i => i.type === 'page' && i.slug === slug);
+}
+
 async function loadPagesList() {
   const container = document.getElementById('pages-list');
   container.innerHTML = `<div class="empty" style="border:1px solid var(--border-light)">Loading…</div>`;
   try {
-    pages = await api('GET', '/pages');
+    await loadNavEditor();
+    pages = navPagesCache;
     renderPagesList();
   } catch (e) {
     container.innerHTML = `<div class="empty" style="border:1px solid var(--border-light)">Failed to load — ${esc(e.message)}</div>`;
@@ -1606,7 +1604,7 @@ function renderPagesList() {
         <div class="post-card-meta">
           <span>/${esc(p.slug)}/</span>
           ${p.draft ? `<span class="badge badge-draft">Draft</span>` : `<span class="badge badge-live">Live</span>`}
-          ${p.nav && !p.draft ? `<span class="badge badge-featured">Nav</span>` : ''}
+          ${pageIsInNav(p.slug) && !p.draft ? `<span class="badge badge-featured">Nav</span>` : ''}
         </div>
       </div>
       <div class="post-card-actions">
@@ -1707,6 +1705,7 @@ async function confirmDeletePage(slug, title) {
   if (!confirm(`Delete page "${title}"? This cannot be undone.`)) return;
   try {
     await api('DELETE', `/pages/${slug}`);
+    await removePageFromSavedNav(slug);
     await refreshStagingStatus();
     toast(`Deleted "${title}"`);
     await loadPagesList();
@@ -1721,6 +1720,7 @@ async function deletePage() {
   if (!confirm(`Delete page "${title}"? This cannot be undone.`)) return;
   try {
     await api('DELETE', `/pages/${editingPage}`);
+    await removePageFromSavedNav(editingPage);
     closeSheet('overlay-page');
     await refreshStagingStatus();
     toast(`Deleted "${title}"`);
@@ -2236,6 +2236,7 @@ function addNavPage() {
   if (navItems.some(i => i.type === 'page' && i.slug === slug)) return;
   navItems.push({ type: 'page', slug, label: '' });
   renderNavEditor();
+  renderPagesList();
 }
 
 function addNavSeries() {
@@ -2247,6 +2248,7 @@ function addNavSeries() {
 function removeNavItem(idx) {
   navItems.splice(idx, 1);
   renderNavEditor();
+  renderPagesList();
 }
 
 function moveNavItem(idx, dir) {
@@ -2304,16 +2306,28 @@ function saveNavItemSheet() {
   }
   closeSheet('overlay-nav-item');
   renderNavEditor();
+  renderPagesList();
 }
 
 async function saveNav() {
   try {
     await api('PATCH', '/settings', { nav: navItems });
+    renderPagesList();
     await refreshStagingStatus();
     toast('Navbar saved — rebuild to publish');
   } catch (e) {
     toast('Save failed: ' + e.message, true);
   }
+}
+
+async function removePageFromSavedNav(slug) {
+  try {
+    const s = await api('GET', '/settings');
+    if (!Array.isArray(s.nav)) return;
+    const next = s.nav.filter(i => !(i.type === 'page' && i.slug === slug));
+    if (next.length !== s.nav.length) await api('PATCH', '/settings', { nav: next });
+    navItems = navItems.filter(i => !(i.type === 'page' && i.slug === slug));
+  } catch (_) {}
 }
 
 async function saveSettings() {

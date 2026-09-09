@@ -114,7 +114,7 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.6.0**
+Current version: **0.6.1**
 
 ---
 
@@ -195,7 +195,11 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ## Current state (last updated: 2026-09-07)
 
-### v0.6.0 — CURRENT
+### v0.6.1 — CURRENT
+
+- Navbar editor lives on the Pages tab. Page **Nav** badge follows `settings.nav`, not page front matter.
+
+### v0.6.0
 
 - Admin **Nav** tab is the source of truth for the public navbar: reorder pages, Series, and hyperlinks; rename labels. `settings.nav` is `[{type, slug?, label?, url?}]`. Unset `nav` still falls back to page flags + navLinks + Series.
 
