@@ -309,7 +309,7 @@ const DEFAULT_SETTINGS = {
 };
 
 async function listGithubDirs(env, path) {
-  if (!env.githubToken || !env.githubRepo) return [];
+  if (!env.githubRepo) return [];
   try {
     const entries = await listDir(env.githubToken, env.githubRepo, path);
     return entries ? entries.filter((e) => e.type === "dir").map((e) => e.name) : [];

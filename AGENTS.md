@@ -94,7 +94,7 @@ ctsmith-org/
 │   ├── content/posts/          posts type kept; not linked in public nav
 │   └── themes/basalt/layouts/  splash homepage + restyled CMS templates
 ├── wrangler.toml               project ctsmith-org, own R2 buckets
-└── package.json                version 0.2.1
+└── package.json                version 0.6.3
 ```
 
 ---
@@ -114,7 +114,9 @@ npx wrangler tail
 
 Source of truth is `package.json`. Bump it **and** `wrangler.toml [vars] PACKAGE_VERSION`.
 `site/data/version.yaml` is generated at build by `scripts/write-version.js` (gitignored).
-Current version: **0.6.2**
+Current version: **0.6.3**
+
+Local admin: public GitHub file reads and directory lists work without a real PAT. Saving still needs `GITHUB_TOKEN`.
 
 ---
 
@@ -193,9 +195,13 @@ Published at `https://ctsmith.org/<slug>/`. Reserved slugs: admin, api, assets, 
 
 ---
 
-## Current state (last updated: 2026-09-08)
+## Current state (last updated: 2026-09-10)
 
-### v0.6.2 — CURRENT
+### v0.6.3 — CURRENT
+
+- Local admin can read public GitHub files and list pages/posts/series without a real PAT. Saving still needs `GITHUB_TOKEN`.
+
+### v0.6.2
 
 - Settings/nav writes require a readable GitHub baseline unless settings are already staged, so a token/API failure cannot overwrite live `settings.yaml` with defaults.
 - Admin Rebuild bar stops polling after three minutes even if Cloudflare still reports an active build.

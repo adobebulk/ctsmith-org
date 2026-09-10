@@ -2,7 +2,7 @@
 
 Personal site for C.T. Smith. A fast static Hugo site for visitors, with a private serverless admin (Basalt) for managing photos and posts — no always-on server.
 
-Everything runs on **Cloudflare + GitHub**. Photos live in R2 (never git). Metadata commits are text-only. Current version: **0.6.2**
+Everything runs on **Cloudflare + GitHub**. Photos live in R2 (never git). Metadata commits are text-only. Current version: **0.6.3**
 
 CMS architecture is imported from [static-photos](https://github.com/adobebulk/static-photos) **v1.5.7**. That project is a separate site (`photos.ctsmith.org`) and is not modified here.
 
@@ -86,6 +86,8 @@ npm run dev
 cp .dev.vars.example .dev.vars   # fill in real values
 npx wrangler pages dev site/public
 ```
+
+A real `GITHUB_TOKEN` is required to save from admin. Public-repo reads (file contents and directory lists) work without one.
 
 The `/api/*` and `/assets/*` routes require real R2 bindings from `.dev.vars`. The Hugo site itself works with just `npm run dev`.
 
